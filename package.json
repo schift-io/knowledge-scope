@@ -1,0 +1,21 @@
+{
+  "name": "knowledge-scope-source",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "npm --prefix packages/knowledge-scope-cli run build",
+    "typecheck": "npm --prefix packages/knowledge-scope-cli run typecheck",
+    "test": "bun test packages/context-pack/test && npm --prefix packages/knowledge-scope-cli test",
+    "verify": "node packages/knowledge-scope-cli/scripts/release-verify.mjs"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.11",
+    "typescript": "5.5.4",
+    "zod": "3.25.76"
+  },
+  "overrides": { "@types/node": "22.19.17" },
+  "engines": { "node": ">=20" },
+  "repository": { "type": "git", "url": "git+https://github.com/schift-io/knowledge-scope.git" }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "isolatedModules": false,
+    "rootDir": "./src",
+    "outDir": "./dist/types",
+    "baseUrl": ".",
+    "paths": {
+      "@schift-io/context-pack": ["./dist/types/context-pack/index.d.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "test", "src/context-pack.ts"]
+}

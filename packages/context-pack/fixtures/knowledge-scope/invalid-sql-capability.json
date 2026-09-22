@@ -1,0 +1,10 @@
+{
+  "operationId": "unsafe_customer_query",
+  "provider": {
+    "kind": "records_operation",
+    "operationId": "orders.unsafe",
+    "sql": "SELECT * FROM orders"
+  },
+  "inputSchemaRef": "schema/query.input.json",
+  "resultSchemaRef": "schema/query.result.json"
+}

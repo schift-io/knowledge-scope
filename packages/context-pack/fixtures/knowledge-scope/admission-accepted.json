@@ -1,0 +1,42 @@
+{
+  "definitionFixture": "valid-definition.json",
+  "mountFixture": "valid-mount.json",
+  "evaluatedAt": "2026-09-22T09:02:00Z",
+  "candidate": {
+    "srn": "srn:schift:acme:records:orders/order_123",
+    "sourceId": "orders.primary",
+    "sourceClass": "records",
+    "providerRef": "orders.lookup",
+    "installationId": "installation.acme_support",
+    "definitionDigest": "sha256:496c3d22b80c27492bbefeed6c74e5554b8461fed9653486f60174d5fc30e842",
+    "mountRevision": 1,
+    "operationId": "lookup_customer_orders",
+    "scopeAuthority": {"organizationId": "org.acme", "tenant": "tenant.acme"},
+    "effectiveScope": {"tenant": "tenant.acme", "namespace": "support", "subject": "customer_123", "session": "session_123"},
+    "authorizationDecision": {
+      "decisionId": "decision.20260922_002",
+      "decisionDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "status": "allowed"
+    },
+    "revision": "revision.20260922_002",
+    "permission": "tenant.acme.orders.read",
+    "permissionMode": "live",
+    "providerScopes": ["orders:read"],
+    "providerEvidence": {"kind": "records_operation", "operationId": "orders.lookup"},
+    "freshness": "2026-09-22T09:01:00Z",
+    "payload": {"order_id": "order_123", "status": "open"},
+    "citation": {"uri": "schift://orders/order_123", "label": "Order order_123"}
+  },
+  "trustedAuthorizationDecision": {
+    "decisionId": "decision.20260922_002",
+    "decisionDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "status": "allowed"
+  },
+  "expected": {
+    "status": "accepted",
+    "candidateSrn": "srn:schift:acme:records:orders/order_123",
+    "matchedPolicy": "mustConsider",
+    "matchedRuleIds": ["current_customer"],
+    "authorityRank": 1
+  }
+}

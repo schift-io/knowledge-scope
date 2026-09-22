@@ -1,0 +1,10 @@
+{
+  "negativeZero": -0.0,
+  "integralFloat": 1.0,
+  "smallScientific": 1e-7,
+  "smallDecimalThreshold": 1e-6,
+  "largeDecimalThreshold": 1e20,
+  "largeScientific": 1e21,
+  "binarySum": 0.30000000000000004,
+  "shortestRoundTrip": 1.2345678901234567
+}

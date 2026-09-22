@@ -1,0 +1,10 @@
+{
+  "definitionFixture": "valid-definition.json",
+  "mountFixture": "valid-mount.json",
+  "evaluatedAt": "2026-09-22T09:02:00Z",
+  "expectedReadyRequirements": [
+    {"requirementId": "current_customer", "requiredEvidence": 1, "observedEvidence": 1, "satisfied": true},
+    {"requirementId": "current_policy", "requiredEvidence": 1, "observedEvidence": 1, "satisfied": true}
+  ],
+  "expectedInsufficientStatus": "insufficient_evidence"
+}

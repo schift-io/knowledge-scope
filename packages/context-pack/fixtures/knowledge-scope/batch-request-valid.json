@@ -1,0 +1,9 @@
+{
+  "installationId": "ks-support",
+  "effectiveScope": { "tenant": "acme", "namespace": "support" },
+  "expectedRevision": 1,
+  "operations": [
+    { "operationId": "search.docs", "input": { "query": "reset" }, "filters": { "locale": "ko" } },
+    { "operationId": "lookup.account", "input": null }
+  ]
+}

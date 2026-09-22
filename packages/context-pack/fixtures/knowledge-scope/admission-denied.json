@@ -1,0 +1,16 @@
+{
+  "acceptedFixture": "admission-accepted.json",
+  "cases": [
+    {"name": "installation unmounted", "mountMutation": "unmounted", "reasonCode": "installation_not_mounted"},
+    {"name": "installation mismatch", "candidateOverrides": {"installationId": "installation.other"}, "reasonCode": "installation_id_mismatch"},
+    {"name": "definition digest mismatch", "candidateOverrides": {"definitionDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}, "reasonCode": "definition_digest_mismatch"},
+    {"name": "mount revision mismatch", "candidateOverrides": {"mountRevision": 2}, "reasonCode": "mount_revision_mismatch"},
+    {"name": "untrusted authorization", "trustedDecisionDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "reasonCode": "authorization_decision_untrusted"},
+    {"name": "provider scopes missing", "candidateOverrides": {"providerScopes": []}, "reasonCode": "provider_scopes_missing"},
+    {"name": "permission mode mismatch", "candidateOverrides": {"permissionMode": "static"}, "reasonCode": "permission_mode_mismatch"},
+    {"name": "citation missing", "omitCandidateFields": ["citation"], "reasonCode": "citation_required"},
+    {"name": "freshness missing", "omitCandidateFields": ["freshness"], "reasonCode": "freshness_required"},
+    {"name": "freshness in future", "candidateOverrides": {"freshness": "2026-09-22T09:03:01Z"}, "reasonCode": "freshness_in_future"},
+    {"name": "source stale", "candidateOverrides": {"freshness": "2026-09-22T08:50:00Z"}, "reasonCode": "source_stale"}
+  ]
+}

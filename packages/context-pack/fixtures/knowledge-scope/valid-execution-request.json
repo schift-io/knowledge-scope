@@ -1,0 +1,8 @@
+{
+  "installationId": "installation.acme_support",
+  "operationId": "search_support_tickets",
+  "effectiveScope": {"tenant": "tenant.acme", "namespace": "support", "subject": "ticket_123"},
+  "input": {"query": "open ticket"},
+  "filters": {"requester_id": "customer_123"},
+  "expectedRevision": 1
+}

@@ -1,0 +1,63 @@
+{
+  "packId": "support.knowledge",
+  "version": "1.2.0",
+  "responsibility": "customer_facing_support",
+  "scope": {"root": "tenant", "descendants": ["namespace", "subject", "session"]},
+  "capabilities": [
+    {
+      "operationId": "lookup_customer_orders",
+      "provider": {"kind": "records_operation", "operationId": "orders.lookup"},
+      "inputSchemaRef": "schema/orders-lookup.input.json",
+      "resultSchemaRef": "schema/orders-lookup.result.json",
+      "allowedFilters": ["customer_id", "status"],
+      "limits": {"maxRows": 25, "maxResultBytes": 65536},
+      "freshness": {"maxAgeSeconds": 300},
+      "requiredProviderScopes": ["orders:read"]
+    },
+    {
+      "operationId": "search_support_tickets",
+      "provider": {"kind": "open_connector_action", "actionId": "zendesk.search_tickets", "connectorRef": "connector.zendesk.primary"},
+      "inputSchemaRef": "schema/ticket-search.input.json",
+      "resultSchemaRef": "schema/ticket-search.result.json",
+      "allowedFilters": ["requester_id"],
+      "limits": {"maxRows": 10},
+      "requiredProviderScopes": ["tickets:read"]
+    },
+    {
+      "operationId": "search_product_manuals",
+      "provider": {"kind": "schift_search", "indexRef": "index.product_manuals"},
+      "inputSchemaRef": "schema/search.input.json",
+      "resultSchemaRef": "schema/search.result.json"
+    },
+    {
+      "operationId": "search_public_incidents",
+      "provider": {"kind": "web_search", "provider": "customer"},
+      "inputSchemaRef": "schema/web-search.input.json",
+      "resultSchemaRef": "schema/web-search.result.json",
+      "limits": {"maxRows": 5, "maxResultBytes": 32768}
+    }
+  ],
+  "contextPolicy": {
+    "mustConsider": [
+      {"id": "current_customer", "selector": {"sourceIds": ["orders.primary"]}, "minEvidence": 1, "maxAgeSeconds": 300},
+      {"id": "current_policy", "selector": {"sourceClasses": ["document"], "authorities": ["approved"]}, "minEvidence": 1}
+    ],
+    "mayConsider": [
+      {"id": "recent_activity", "selector": {"sourceClasses": ["activity_stream"], "origins": ["observed"]}, "minEvidence": 1}
+    ],
+    "mustNotUse": [
+      {"id": "other_tenant", "selector": {"sourceIds": ["other_tenant.data"]}},
+      {"id": "expired_policy", "selector": {"sourceIds": ["expired.policy"]}}
+    ]
+  },
+  "authority": {
+    "precedence": ["primary", "operational", "approved", "observed", "derived"],
+    "allowed": ["read", "draft"],
+    "forbidden": ["send", "approve", "mutate_source", "workflow"]
+  },
+  "evidence": {
+    "requireCitation": true,
+    "freshness": {"defaultMaxAgeSeconds": 3600},
+    "coverageAssertions": ["current_customer", "current_policy"]
+  }
+}

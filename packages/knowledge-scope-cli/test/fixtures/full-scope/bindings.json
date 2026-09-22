@@ -1,0 +1,23 @@
+{
+  "scopeAuthority": { "organizationId": "acme-org", "tenant": "acme" },
+  "sourceBindings": [
+    {
+      "authority": "observed",
+      "connectorRef": "helpdesk",
+      "operationIds": ["fetch-support"],
+      "origin": "observed",
+      "permissionMode": "live",
+      "providerRef": "support-search",
+      "sourceClass": "activity_stream",
+      "sourceId": "source-helpdesk"
+    },
+    {
+      "authority": "approved",
+      "operationIds": ["search-handbook"],
+      "permissionMode": "mirrored",
+      "providerRef": "support-handbook",
+      "sourceClass": "document",
+      "sourceId": "source-handbook"
+    }
+  ]
+}

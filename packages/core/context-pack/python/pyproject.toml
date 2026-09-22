@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "schift-context-pack-contract"
+version = "0.1.0"
+description = "Provider-neutral Knowledge Scope contracts, admission, and canonical JSON."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2,<3"]
+
+[project.optional-dependencies]
+dev = ["basedpyright>=1.37", "pytest>=8.0", "ruff>=0.8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["schift_context_pack_contract"]
+artifacts = ["schift_context_pack_contract/py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["COM812", "CPY001", "D101", "D102", "D105", "D107", "D203", "D213", "EM101", "ISC001", "TRY003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "INP001", "PLR2004", "S101"]
+
+[tool.basedpyright]
+typeCheckingMode = "all"
+pythonVersion = "3.12"
+include = ["schift_context_pack_contract", "tests"]

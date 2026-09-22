@@ -1,0 +1,32 @@
+{
+  "srn": "srn:schift:acme:records:tickets/ticket_123",
+  "sourceId": "tickets.primary",
+  "sourceClass": "records",
+  "providerRef": "zendesk.search_tickets",
+  "installationId": "installation.acme_support",
+  "definitionDigest": "sha256:496c3d22b80c27492bbefeed6c74e5554b8461fed9653486f60174d5fc30e842",
+  "mountRevision": 1,
+  "operationId": "search_support_tickets",
+  "scopeAuthority": {"organizationId": "org.acme", "tenant": "tenant.acme"},
+  "effectiveScope": {"tenant": "tenant.acme", "namespace": "support", "subject": "ticket_123"},
+  "authorizationDecision": {
+    "decisionId": "decision.20260922_001",
+    "decisionDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "status": "allowed"
+  },
+  "revision": "revision.20260922_001",
+  "permission": "tenant.acme.support.read",
+  "permissionMode": "live",
+  "providerScopes": ["tickets:read"],
+  "providerEvidence": {
+    "kind": "open_connector_action",
+    "connectorRef": "connector.zendesk.primary",
+    "actionId": "zendesk.search_tickets",
+    "connectorRunId": "connector_run.20260922_001",
+    "actionCorrelationId": "ks-496c3d22b80c27492bbefeed6c74e555",
+    "auditPersisted": true
+  },
+  "freshness": "2026-09-22T09:00:00Z",
+  "payload": {"ticket_id": "ticket_123", "status": "open"},
+  "citation": {"uri": "schift://tickets/ticket_123", "label": "Ticket ticket_123"}
+}

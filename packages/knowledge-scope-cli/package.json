@@ -1,0 +1,58 @@
+{
+  "name": "@schift-io/knowledge-scope",
+  "version": "0.1.0",
+  "description": "Portable Knowledge Scope authoring and local control plane.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./context-pack": {
+      "types": "./dist/types/context-pack/index.d.ts",
+      "import": "./dist/context-pack.js"
+    }
+  },
+  "bin": {
+    "schift-ks": "./dist/main.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "docs",
+    "examples"
+  ],
+  "scripts": {
+    "build": "bun ./scripts/build-package.mjs",
+    "prepack": "bun run build",
+    "test": "bun test",
+    "test:package": "bun run build && bun test ./test/package.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "release:verify": "node ./scripts/release-verify.mjs"
+  },
+  "dependencies": {
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.11",
+    "typescript": "5.5.4"
+  },
+  "overrides": {
+    "@types/node": "22.19.17"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schift-io/knowledge-scope.git",
+    "directory": "packages/knowledge-scope-cli"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

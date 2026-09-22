@@ -1,0 +1,24 @@
+{
+  "installationId": "installation.acme_support",
+  "definitionDigest": "sha256:496c3d22b80c27492bbefeed6c74e5554b8461fed9653486f60174d5fc30e842",
+  "scopeAuthority": {"organizationId": "org.acme", "tenant": "tenant.acme"},
+  "sourceBindings": [
+    {
+      "sourceId": "orders.primary", "sourceClass": "records", "providerRef": "orders.lookup",
+      "authority": "operational", "origin": "observed", "permissionMode": "live",
+      "operationIds": ["lookup_customer_orders"]
+    },
+    {
+      "sourceId": "product.manuals", "sourceClass": "document", "providerRef": "index.product_manuals",
+      "authority": "approved", "origin": "derived", "permissionMode": "mirrored",
+      "operationIds": ["search_product_manuals"]
+    },
+    {
+      "sourceId": "tickets.primary", "sourceClass": "records", "providerRef": "zendesk.search_tickets",
+      "connectorRef": "connector.zendesk.primary", "authority": "operational", "origin": "observed",
+      "permissionMode": "live", "operationIds": ["search_support_tickets"]
+    }
+  ],
+  "state": "mounted",
+  "revision": 1
+}

@@ -1,0 +1,31 @@
+{
+  "scopeAuthority": { "organizationId": "replace-with-organization", "tenant": "replace-with-tenant" },
+  "sourceBindings": [
+    {
+      "authority": "operational",
+      "operationIds": ["list-orders"],
+      "permissionMode": "live",
+      "providerRef": "list-orders",
+      "sourceClass": "records",
+      "sourceId": "source-orders"
+    },
+    {
+      "authority": "observed",
+      "connectorRef": "helpdesk",
+      "operationIds": ["fetch-support"],
+      "origin": "observed",
+      "permissionMode": "live",
+      "providerRef": "support-search",
+      "sourceClass": "activity_stream",
+      "sourceId": "source-helpdesk"
+    },
+    {
+      "authority": "approved",
+      "operationIds": ["search-handbook"],
+      "permissionMode": "mirrored",
+      "providerRef": "support-handbook",
+      "sourceClass": "document",
+      "sourceId": "source-handbook"
+    }
+  ]
+}

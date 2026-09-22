@@ -1,0 +1,7 @@
+{
+  "valid-pack.json": "sha256:aece46369b11b0f4ffed11c9efc875c99dae22d869e5c2138377aacdb9bed1c7",
+  "valid-definition.json": "sha256:496c3d22b80c27492bbefeed6c74e5554b8461fed9653486f60174d5fc30e842",
+  "valid-candidate.json": "sha256:c94523c04772a9a96a210867da0ccd75d9c0c8c010585f2d5801d1e133e60263",
+  "canonical-unicode-order.json": "sha256:645b2f00aa157c42ee35a116773712667d52bee0ae6af62503ac6462b609ed01",
+  "canonical-number-parity.json": "sha256:d7729bcacac4581d43888a3161808235dd674b9e6e3f9e76eb93c74107a50025"
+}

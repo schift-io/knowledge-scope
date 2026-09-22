@@ -1,0 +1,52 @@
+{
+  "authority": {
+    "allowed": ["read"],
+    "forbidden": ["send", "approve", "mutate_source", "workflow"],
+    "precedence": ["approved", "observed"]
+  },
+  "capabilities": [
+    {
+      "inputSchemaRef": "schemas/query.json",
+      "freshness": { "maxAgeSeconds": 3600 },
+      "limits": { "maxResultBytes": 2048, "maxRows": 2 },
+      "operationId": "fetch-support",
+      "provider": {
+        "actionId": "support-search",
+        "connectorRef": "helpdesk",
+        "kind": "open_connector_action"
+      },
+      "requiredProviderScopes": ["tickets:read"],
+      "resultSchemaRef": "schemas/evidence.json"
+    },
+    {
+      "inputSchemaRef": "schemas/query.json",
+      "freshness": { "maxAgeSeconds": 3600 },
+      "limits": { "maxResultBytes": 4096, "maxRows": 2 },
+      "operationId": "search-handbook",
+      "provider": { "indexRef": "support-handbook", "kind": "schift_search" },
+      "requiredProviderScopes": ["search:read"],
+      "resultSchemaRef": "schemas/evidence.json"
+    }
+  ],
+  "contextPolicy": {
+    "mustConsider": [
+      {
+        "id": "support-evidence",
+        "minEvidence": 1,
+        "selector": { "sourceClasses": ["activity_stream", "document"] }
+      }
+    ],
+    "mustNotUse": [
+      { "id": "derived-only", "selector": { "authorities": ["derived"] } }
+    ]
+  },
+  "evidence": {
+    "coverageAssertions": ["support-evidence"],
+    "freshness": { "defaultMaxAgeSeconds": 3600 },
+    "requireCitation": true
+  },
+  "packId": "full-scope",
+  "responsibility": "support-context",
+  "scope": { "descendants": ["namespace", "subject", "session"], "root": "tenant" },
+  "version": "1.0.0"
+}

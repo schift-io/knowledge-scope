@@ -1,0 +1,48 @@
+{
+  "authority": {
+    "allowed": ["read", "draft"],
+    "forbidden": ["send", "approve", "mutate_source", "workflow"],
+    "precedence": ["primary", "operational", "approved", "observed", "derived"]
+  },
+  "capabilities": [
+    {
+      "allowedFilters": ["status"],
+      "inputSchemaRef": "schemas/query-input.json",
+      "limits": { "maxResultBytes": 131072, "maxRows": 25 },
+      "operationId": "list-orders",
+      "provider": { "kind": "records_operation", "operationId": "list-orders" },
+      "resultSchemaRef": "schemas/result-row.json"
+    },
+    {
+      "freshness": { "maxAgeSeconds": 3600 },
+      "inputSchemaRef": "schemas/query-input.json",
+      "limits": { "maxResultBytes": 131072, "maxRows": 25 },
+      "operationId": "fetch-support",
+      "provider": { "actionId": "support-search", "connectorRef": "helpdesk", "kind": "open_connector_action" },
+      "requiredProviderScopes": ["tickets:read"],
+      "resultSchemaRef": "schemas/result-row.json"
+    },
+    {
+      "freshness": { "maxAgeSeconds": 86400 },
+      "inputSchemaRef": "schemas/query-input.json",
+      "limits": { "maxResultBytes": 131072, "maxRows": 25 },
+      "operationId": "search-handbook",
+      "provider": { "indexRef": "support-handbook", "kind": "schift_search" },
+      "resultSchemaRef": "schemas/result-row.json"
+    }
+  ],
+  "contextPolicy": {
+    "mayConsider": [{ "id": "activity", "minEvidence": 1, "selector": { "sourceClasses": ["activity_stream"] } }],
+    "mustConsider": [{ "id": "support-evidence", "minEvidence": 1, "selector": { "sourceClasses": ["document", "records"] } }],
+    "mustNotUse": [{ "id": "derived-only", "selector": { "authorities": ["derived"] } }]
+  },
+  "evidence": {
+    "coverageAssertions": ["support-evidence"],
+    "freshness": { "defaultMaxAgeSeconds": 86400 },
+    "requireCitation": true
+  },
+  "packId": "support-scope",
+  "responsibility": "support-context",
+  "scope": { "descendants": ["namespace", "subject", "session"], "root": "tenant" },
+  "version": "0.1.0"
+}

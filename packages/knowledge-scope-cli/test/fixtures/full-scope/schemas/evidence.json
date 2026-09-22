@@ -1,0 +1,6 @@
+{
+  "additionalProperties": true,
+  "properties": { "text": { "minLength": 1, "type": "string" } },
+  "required": ["text"],
+  "type": "object"
+}

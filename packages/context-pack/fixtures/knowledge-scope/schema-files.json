@@ -1,0 +1,10 @@
+{
+  "schema/orders-lookup.input.json": {"type": "object", "properties": {"customer_id": {"type": "string"}}, "required": ["customer_id"]},
+  "schema/orders-lookup.result.json": {"type": "object", "properties": {"order_id": {"type": "string"}}, "required": ["order_id"]},
+  "schema/search.input.json": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+  "schema/search.result.json": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]},
+  "schema/ticket-search.input.json": {"type": "object", "properties": {"requester_id": {"type": "string"}}, "required": ["requester_id"]},
+  "schema/ticket-search.result.json": {"type": "object", "properties": {"ticket_id": {"type": "string"}}, "required": ["ticket_id"]},
+  "schema/web-search.input.json": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+  "schema/web-search.result.json": {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}
+}

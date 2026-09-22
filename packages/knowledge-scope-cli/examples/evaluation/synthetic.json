@@ -1,0 +1,59 @@
+{
+  "notice": "SYNTHETIC engineering fixture. Not a real customer golden set or a measured retrieval advantage.",
+  "dataset": {
+    "datasetId": "synthetic-support-example",
+    "provenance": "synthetic",
+    "packDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sourceSnapshotDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "questions": [
+      {
+        "questionId": "refund-policy",
+        "inputFingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "expectedDecision": "ready",
+        "expectedEvidence": [
+          { "evidenceId": "refund-window", "citation": "manual:refunds#window" },
+          { "evidenceId": "refund-exclusions", "citation": "manual:refunds#exclusions" }
+        ],
+        "forbiddenEvidenceIds": ["another-tenant-refund"]
+      },
+      {
+        "questionId": "unsupported-topic",
+        "inputFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "expectedDecision": "insufficient_evidence",
+        "expectedEvidence": [],
+        "forbiddenEvidenceIds": ["private-ticket"]
+      }
+    ]
+  },
+  "baselineResults": [
+    {
+      "questionId": "refund-policy",
+      "inputFingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "decision": "ready",
+      "items": [{ "evidenceId": "refund-window", "citation": "manual:refunds#window" }]
+    },
+    {
+      "questionId": "unsupported-topic",
+      "inputFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "decision": "insufficient_evidence",
+      "items": []
+    }
+  ],
+  "candidateResults": [
+    {
+      "questionId": "refund-policy",
+      "inputFingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "decision": "ready",
+      "items": [
+        { "evidenceId": "refund-window", "citation": "manual:refunds#window" },
+        { "evidenceId": "refund-exclusions", "citation": "manual:refunds#exclusions" }
+      ]
+    },
+    {
+      "questionId": "unsupported-topic",
+      "inputFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "decision": "insufficient_evidence",
+      "items": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[
+  {"name":"empty", "request":{"installationId":"ks-support","effectiveScope":{"tenant":"acme"},"operations":[]}},
+  {"name":"duplicate", "request":{"installationId":"ks-support","effectiveScope":{"tenant":"acme"},"operations":[{"operationId":"search.docs","input":null},{"operationId":"search.docs","input":null}]}},
+  {"name":"operation_scope", "request":{"installationId":"ks-support","effectiveScope":{"tenant":"acme"},"operations":[{"operationId":"search.docs","input":null,"effectiveScope":{"tenant":"other"}}]}},
+  {"name":"null_revision", "request":{"installationId":"ks-support","effectiveScope":{"tenant":"acme"},"expectedRevision":null,"operations":[{"operationId":"search.docs","input":null}]}},
+  {"name":"null_filters", "request":{"installationId":"ks-support","effectiveScope":{"tenant":"acme"},"operations":[{"operationId":"search.docs","input":null,"filters":null}]}}
+]
