@@ -87,7 +87,7 @@ installation owner validates and mounts it.
       [GitHub CI](https://github.com/schift-io/knowledge-scope/actions/runs/35728138385)
       passes both TypeScript/CLI and Python jobs.
 
-## Account-free first use — 0.2.0 implemented, not published
+## Account-free first use — 0.2.0 published and registry-verified
 
 User: an AI application developer with local Markdown or text, but no Schift account.
 Job: select their own material, ask a question, inspect cited evidence, and reuse it in an app.
@@ -117,12 +117,27 @@ Local HTTP and expired-snapshot tests passed; independent security re-review fou
 confirmed blocker within the filesystem-owner boundary. This is not a sandbox against malicious
 processes with the same OS identity. Dependency audit reported zero known vulnerabilities.
 
-The verified local `schift-io-knowledge-scope-0.2.0.tgz` SHA-256 is
-`4ea1769fa17425c93de3d0a4fe7e027f601fc577ed7e39e92375f3accbada1ad`.
-Public npm/GitHub remain at the previously published 0.1.0; 0.2.0 publication is a separate action.
+The final npm-first guide is included in the published `schift-io-knowledge-scope-0.2.0.tgz`:
+SHA-256 `37d36d943d7769b0bfeac604d2f60ab5a6d2173710548ff690923082d961097d`.
 
-Implementation scope: no new dependencies, no customer data in examples, no remote publication,
-no provider/account configuration, and no private-monorepo upload. Existing shared contracts stay
+- [x] Public source and v0.2.0 tag point to `117900627f2bf31d7aeeec3a49751bcd8f730a76`.
+- [x] Both [GitHub CI jobs](https://github.com/schift-io/knowledge-scope/actions/runs/35733931716)
+      passed against that source.
+- [x] [npm v0.2.0](https://www.npmjs.com/package/@schift-io/knowledge-scope/v/0.2.0) is published
+      with `latest: 0.2.0` and the public repository link.
+- [x] Registry-downloaded archive SHA-256 exactly matches the approved release file.
+- [x] Fresh package-name install passed the local-first-use/restarted-SDK/snapshot/revocation
+      checks and the existing synthetic hosted Search/combined document-record lifecycle.
+- [x] [GitHub v0.2.0 release](https://github.com/schift-io/knowledge-scope/releases/tag/v0.2.0)
+      is public with the same npm archive and checksum manifest.
+
+Publication evidence (2026-09-22): registry metadata initially lagged the successful publish
+response, then resolved to 0.2.0. Installed verification used a fresh cache with `--prefer-online`.
+No duplicate publication or version substitution was used.
+
+Implementation introduced no new dependencies and included no customer data or provider/account
+configuration. Public distribution was separately approved; only the curated Knowledge Scope
+repository and npm package were uploaded, not the private monorepo. Existing shared contracts stay
 additive. PDF/office parsing, URL fetching, MCP, semantic retrieval, and managed sync are separate
 lanes; this local lexical path must not claim to implement them.
 
