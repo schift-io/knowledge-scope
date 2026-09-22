@@ -141,6 +141,33 @@ repository and npm package were uploaded, not the private monorepo. Existing sha
 additive. PDF/office parsing, URL fetching, MCP, semantic retrieval, and managed sync are separate
 lanes; this local lexical path must not claim to implement them.
 
+## Agent-assisted use and explanation guide — implementation verified
+
+User: a developer deciding whether KS belongs in their app, or an agent using a selected KS project.
+Job: understand the input/output boundary and safely complete setup, repeated retrieval, and recovery.
+First action: choose the CLI/SDK guide or the [official usage skill](../../skills/schift-knowledge-scope/SKILL.md).
+
+- [x] Add a self-contained usage skill and host metadata without modifying the execution runtime.
+- [x] Explain where KS fits, when direct file search is simpler, and which responsibilities stay with the app.
+- [x] Add a [Korean usage guide](../knowledge-scope-cli/docs/USAGE.md) for installation, result interpretation,
+      generated files, retained private state, refresh, disconnect, and provider prerequisites.
+- [x] Add an [observed example](../knowledge-scope-cli/docs/DEMO.md) using the published npm package;
+      distinguish selected JSON fields from full responses and admission from answer relevance.
+- [x] Verify project-local skill discovery/installation into Codex and Claude Code directory layouts.
+- [x] Independently run the installed skill with selected synthetic sources, a supported question,
+      an unsupported question, and untrusted instructions inside evidence.
+- [x] Preserve declared source boundaries and cite results; withhold unsupported claims even when
+      lexical overlap yields a ready but irrelevant passage.
+- [x] Validate skill metadata, documentation links/anchors, and local Markdown previews at mobile
+      and desktop widths; public source build/typecheck and 63 contract + 237 CLI/SDK tests pass.
+- [ ] Publish the new skill and explanation changes to the public repository after approval.
+
+The independent agent reused one installation across separate CLI processes. This does not certify
+automatic skill selection in every host/version, future agent-session continuity, or general
+prompt-injection resistance. No global skills, runtime dependencies, npm version, or private
+customer sources were changed. The usage skill is not the proposed Let Skill compiler or an MCP server.
+
+
 ## External validation — open
 
 Use the [support-context pilot guide](../knowledge-scope-cli/docs/PILOT.md) to run customer trials.

@@ -3,6 +3,9 @@
 Public source, contribution instructions, and releases:
 [schift-io/knowledge-scope](https://github.com/schift-io/knowledge-scope).
 
+한국어로 처음 시작한다면 [내 자료 연결부터 앱 사용까지](docs/USAGE.md)를 읽으세요.
+샘플 실행, 결과 해석, 프로젝트 재사용, 갱신·해제, 지원 범위를 순서대로 설명합니다.
+
 Retrieve cited passages from your own Markdown or text files, then pass admitted evidence to your
 AI application. Your application chooses the model and generates the answer.
 
