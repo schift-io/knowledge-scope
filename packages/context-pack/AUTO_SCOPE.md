@@ -141,7 +141,7 @@ repository and npm package were uploaded, not the private monorepo. Existing sha
 additive. PDF/office parsing, URL fetching, MCP, semantic retrieval, and managed sync are separate
 lanes; this local lexical path must not claim to implement them.
 
-## Agent-assisted use and explanation guide — implementation verified
+## Agent-assisted use and explanation guide — published and verified
 
 User: a developer deciding whether KS belongs in their app, or an agent using a selected KS project.
 Job: understand the input/output boundary and safely complete setup, repeated retrieval, and recovery.
@@ -165,7 +165,12 @@ First action: choose the CLI/SDK guide or bind selected knowledge to this conver
       validation, require selection in a new conversation, and verify explicit project switches.
 - [x] Run independent two-conversation tests: A follow-up reuse, unbound new conversation,
       explicit B selection and switch, and session close without unmount or data deletion.
-- [ ] Publish the new skill and explanation changes to the public repository after approval.
+- [x] Publish the skill and explanation changes to the approved public repository at
+      [76cae51](https://github.com/schift-io/knowledge-scope/commit/76cae51d2f27237b7d7651e965cd994c42ec906a).
+- [x] Install the published skill into fresh project-local Codex and Claude Code layouts;
+      both copies match the published source and pass skill validation.
+- [x] Verify public Python and TypeScript CI on that implementation revision:
+      [successful run](https://github.com/schift-io/knowledge-scope/actions/runs/35754342213).
 
 The independent agent reused one installation across separate CLI processes. This does not certify
 automatic skill selection in every host/version, future agent-session continuity, or general
