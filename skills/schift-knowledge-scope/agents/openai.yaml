@@ -1,4 +1,4 @@
 interface:
   display_name: "Schift Knowledge Scope"
-  short_description: "Bind project knowledge to this session with citations"
-  default_prompt: "Use $schift-knowledge-scope to bind my selected project notes to this session and use them for relevant questions with cited evidence."
+  short_description: "Use my selected notes in this chat with cited answers"
+  default_prompt: "Use $schift-knowledge-scope to connect ./my-documents and answer my questions with sources in this conversation."

@@ -135,3 +135,32 @@ runtime session permission boundary, automatic host startup/end hooks, deletion 
 messages, or general behavior guarantees for every model. Existing installation state and
 24-hour snapshot freshness are separate from conversation selection.
 
+## Simpler first-use check — unpublished source changes
+
+Two fresh assistant conversations used the revised skill with the same synthetic
+Korean notes. One used the built source CLI; the other used the published npm
+`0.2.0` runner. Neither evaluator received expected policy answers or manual IDs.
+
+| User action | Built source CLI | Published 0.2.0 through revised skill |
+| --- | --- | --- |
+| Connect the selected folder and find the refund rule | `connect`, verified binding, `ask`: cited 21 days. | Agent ran `quickstart` and inspected the returned installation: cited 21 days. |
+| Ask about delivery in the same conversation | Reused the project; cited four business days. | Reused the installation; cited four business days. |
+| Request a refresh after editing the notes | `refresh` kept the same project path and selected a new snapshot; cited 28 days. | Agent prepared a new sibling project internally, verified it, and replaced the conversation binding; cited 28 days. |
+
+The user did not copy IDs, read JSON, or install the CLI into an application.
+The released runner can populate npm's package cache. The latest skill response
+shows filename, line range, and that it is captured evidence; full snapshot
+citations remain in the retrieval result for auditing rather than appearing as
+non-working clickable links.
+
+The new commands also passed real Node subprocess scenarios for failed-refresh
+preservation, separate projects, missing connection, and unsupported questions.
+An isolated package install exercised the same flow plus unchanged customer
+application dependencies. Terminal captures at 80 columns showed no overflow in
+the help and Korean evidence samples. These are synthetic checks, not a measured
+first-use success rate with external developers.
+
+`connect`, `ask`, and `refresh` are not in published npm `0.2.0`. The source build
+keeps the old commands compatible; the skill checks the selected binary's help
+and uses the appropriate path. No automatic source sync, model generation, or
+new runtime session permission boundary is claimed.

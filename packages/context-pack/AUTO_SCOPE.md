@@ -182,6 +182,50 @@ automatic lifecycle hook, implicit global default, or permission bypass; previou
 is retained according to the host, and existing installation state remains independent.
 
 
+## Simpler first use — locally verified, not published
+
+User: a developer using approved project notes in an existing AI conversation.
+Job: connect those notes once, ask follow-up questions, and refresh changed notes
+without copying installation IDs or creating replacement project directories.
+Flow: install the skill once → choose the source → ask with citations → refresh
+the same selected project when needed. Source scope, retained local copies, and
+evidence passed to the AI host remain visible; internal revisions do not.
+
+Implementation and behavior-preservation plan:
+
+- [x] Add `connect`, `ask`, and `refresh` with a project-local default and an
+      explicit `--project` override. No global last-used project.
+- [x] Reuse the existing local importer, mount validation, freshness policy, and
+      query path. Preserve all existing CLI/SDK commands and JSON contracts.
+- [x] Keep a private project pointer; prepare refreshed snapshots separately and
+      replace the pointer atomically only after success. Never implicitly delete
+      or revoke retained installations; failed refresh preserves the old pointer.
+- [x] Ignore generated private project metadata in ordinary Git adds without
+      changing the customer's repository-level ignore rules.
+- [x] Return readable evidence and actionable recovery for the new commands;
+      retain `--json` for agents and programmatic consumers.
+- [x] Let the session skill run the pinned CLI without modifying the customer's
+      application dependencies; keep a verified path for published `0.2.0`.
+- [x] Verify new and existing behavior with unit tests, real Node CLI scenarios,
+      isolated package installation, typecheck, and terminal-output review.
+- [x] Forward-test the skill from fresh conversations on the local build and
+      published `0.2.0`: first answer, same-session follow-up, and requested
+      refresh all succeeded without user-managed IDs. See [observed checks](../knowledge-scope-cli/docs/DEMO.md#simpler-first-use-check--unpublished-source-changes).
+- [ ] Publish these implementation and skill updates after separate approval;
+      do not infer this from the earlier approved `0.2.0` publication.
+
+Final local verification: 63 contract tests and 283 CLI/SDK tests passed in the
+public checkout; build and typecheck passed. The isolated release verifier built
+and installed a tarball, checked the SDK and local flows, and passed the new
+connect/ask/refresh smoke. The strict TypeScript static checker found no
+violations in the 11 changed source/test files. Both terminal review passes
+accepted the 80-column help and Korean-evidence samples. No remote CI or
+publication is claimed for these unpushed changes.
+
+This track does not add semantic search, PDF parsing, session ACLs, automatic
+sync, or model generation. Public npm remains `0.2.0`; new command availability
+must be checked against the selected binary until a separately approved release.
+
 ## External validation — open
 
 Use the [support-context pilot guide](../knowledge-scope-cli/docs/PILOT.md) to run customer trials.

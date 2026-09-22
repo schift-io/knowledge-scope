@@ -1,11 +1,34 @@
 # Schift Knowledge Scope
 
-Give an AI application a reusable definition of **which project data to read, what evidence to
-return, and when to withhold it**. Start with Markdown or text files, retrieve passages with source
-references, then use them with the model you choose.
+Use your selected project notes in the AI conversation you already have, with source references.
 
-Try the local CLI below, or [use the official skill with a coding agent](#use-with-a-coding-agent).
-[한국어 사용 가이드](packages/knowledge-scope-cli/docs/USAGE.md) walks through the same workflow.
+## Use with a coding agent
+
+Install the usage skill once; choose your agent and installation scope when prompted:
+
+```bash
+npx skills add schift-io/knowledge-scope --skill schift-knowledge-scope
+```
+
+Select `schift-knowledge-scope` in your assistant, then ask:
+
+> Use `$schift-knowledge-scope` with `./my-documents`. Find the refund policy and show its source.
+
+Or: “`$schift-knowledge-scope`로 `./my-documents` 연결해서 환불 규정을 찾아줘. 출처도 보여줘.”
+
+The agent handles the command runner, connection IDs and evidence checks. Continue with “What about delivery?” in the same conversation. Ask to refresh when your files change. In a new conversation, select your material or existing project again.
+
+Needs **Node.js 20+**, a skill-capable assistant, and local command execution. The runner may download a pinned npm package into its cache; no global install or application dependency change is needed. Local inputs are **Markdown/text files**, with **keyword search**, not semantic search or PDF/Office/URL ingestion.
+
+Selected text is copied into private local storage. Retrieved passages enter your assistant's context and its data policy applies. Ending a conversation does not delete snapshots; session selection is an assistant workflow, not runtime isolation.
+
+[한국어 사용 가이드](packages/knowledge-scope-cli/docs/USAGE.md) · [Skill instructions](skills/schift-knowledge-scope/SKILL.md)
+
+**Release boundary:** published npm is `0.2.0`. The skill supports that version through agent-managed legacy commands. Simpler `connect`/`ask`/`refresh` commands are unreleased source-checkout additions, not available from npm yet. See [local-build usage](packages/knowledge-scope-cli/docs/USAGE.md#개발-중인-간단한-cli-직접-확인하기).
+
+## Integrate KS directly
+
+The CLI/SDK reference below is for application developers. These are not extra setup steps for skill users.
 
 ## Get your first cited result
 
@@ -85,65 +108,6 @@ or model-specific prompts.
 
 The question is whether reusable definitions and checked outputs reduce the retrieval glue your
 team maintains—not whether adding KS makes every answer better.
-
-## Use with a coding agent
-
-The [official `schift-knowledge-scope` skill](skills/schift-knowledge-scope/SKILL.md) guides an
-agent through selecting a project for the **current conversation or task**, connecting only
-material you select, and reusing that binding for follow-up questions with citations.
-
-Install the skill from this repository with the separate Skills CLI:
-
-```bash
-npx skills add schift-io/knowledge-scope --skill schift-knowledge-scope
-```
-
-Review the offered target agent and installation scope. To try a local checkout of this repository
-instead, run `npx skills add . --skill schift-knowledge-scope` at its root. The skill lives in
-this GitHub repository; it is **not bundled in npm 0.2.0**. Skill installation and KS runtime
-installation are separate steps. Installing a skill globally or for a project makes the instructions
-discoverable; it does **not** activate that project's data in every conversation.
-
-Then ask your agent:
-
-> For this session, use schift-knowledge-scope with `./my-documents` as project A. Find the refund
-> policy and show the supporting passage and citation. Do not upload these files to a service.
-
-Or: “이번 세션은 A 프로젝트로. `./my-documents`를 KS로 연결하고 환불 규정의 근거와 출처를 찾아줘. 외부로 업로드하지 마.”
-
-```text
-New conversation/fork: no active project
-  → You select project A → agent connects or inspects the selected installation
-  → “같은 자료로 배송 기간은?” → reuse A, retrieve evidence again
-  → You select project B → stop using A's evidence, validate B before querying
-  → Session ends → stop session use; stored installations remain
-```
-
-In a new conversation, explicitly ask “새 세션에서 A 프로젝트 이어 쓰기. `./support-project`의
-기존 연결을 확인하고 사용해줘.” The agent checks that selected project's installation and current
-revision before resuming. It must not choose the latest installation merely from the working
-directory, or silently inherit a fork's active data binding.
-
-The skill keeps only the working directory, selected source, KS state directory, installation ID,
-and revision as binding metadata in the current conversation context—not a global session registry
-or a new permanent store of source text and conversation logs. Retrieved passages still enter your
-agent host's context and may be retained under that host's own history policy. Switching projects
-means not using previous evidence; it cannot erase prior messages from the host.
-
-**Session selection is an agent workflow, not a new runtime isolation feature.** There are no
-automatic startup/end hooks. Ending a conversation does not unmount an installation, purge source
-snapshots, or revoke server access. Installations persist separately; local snapshots have the
-generated 24-hour freshness rule. Explicit `unmount` retains an inactive record and stored text.
-Provider permissions still apply; the Schift Search adapter rejects `namespace`/`subject`/`session`
-narrowing rather than claiming to enforce it.
-
-This is an instruction-based usage skill, not a bundled MCP server or the proposed Let Skill
-compiler. It cannot grant access, override runtime checks, or guarantee that every agent host
-will load or follow it. Your agent's existing file and tool permissions still apply.
-
-Local-checkout installation was verified in isolated project folders for the Codex and Claude Code
-directory layouts. An independent agent followed the installed skill through setup, cited retrieval,
-and an unsupported question. This is not certification of automatic selection in every host/version.
 
 ## Use from your application
 

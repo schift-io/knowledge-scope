@@ -3,8 +3,29 @@
 Public source, contribution instructions, and releases:
 [schift-io/knowledge-scope](https://github.com/schift-io/knowledge-scope).
 
-한국어로 처음 시작한다면 [내 자료 연결부터 앱 사용까지](docs/USAGE.md)를 읽으세요.
-샘플 실행, 결과 해석, 프로젝트 재사용, 갱신·해제, 지원 범위를 순서대로 설명합니다.
+한국어로 처음 시작한다면 [지금 쓰는 AI에서 내 자료 사용하기](docs/USAGE.md)를 읽으세요.
+
+## Use your notes in your current AI conversation
+
+Install the official usage skill once in your chosen skill-capable coding assistant:
+
+```bash
+npx skills add schift-io/knowledge-scope --skill schift-knowledge-scope
+```
+
+Select `schift-knowledge-scope` in that assistant and ask:
+
+> Use `$schift-knowledge-scope` with `./my-documents`. Find the refund policy and show its source.
+
+The agent handles the CLI runner, connection IDs and evidence checks. Continue with “What about delivery?” in the same conversation. Ask to refresh when the source changes; select the material again in a new conversation. Generic file questions do not guarantee automatic skill invocation.
+
+Needs Node.js 20+ and local command execution. The runner may download a pinned npm package into its cache; it does not need a global install or application dependency change. Local `.md`/`.txt` retrieval uses keyword search and stores a private snapshot. Retrieved passages enter your assistant's context and its data policy applies. Ending the conversation does not erase stored text.
+
+**Release boundary:** npm remains `0.2.0`. The skill can use its legacy commands without asking you to manage IDs. The source checkout adds unreleased `connect`, `ask`, and `refresh` commands; do not assume they exist in the published package. See the [local-build instructions](docs/USAGE.md#개발-중인-간단한-cli-직접-확인하기).
+
+## CLI and SDK integration
+
+The remaining reference is for developers integrating KS directly, not required steps after installing the skill.
 
 Retrieve cited passages from your own Markdown or text files, then pass admitted evidence to your
 AI application. Your application chooses the model and generates the answer.
