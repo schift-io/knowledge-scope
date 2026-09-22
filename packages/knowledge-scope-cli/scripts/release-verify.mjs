@@ -88,6 +88,8 @@ await cp(join(isolated, "scripts", "release-smoke.mjs"), join(consumer, "smoke.m
 run(["node", "smoke.mjs"], consumer);
 await cp(join(isolated, "scripts", "release-local-smoke.mjs"), join(consumer, "local-smoke.mjs"));
 run(["node", "local-smoke.mjs"], consumer);
+await cp(join(isolated, "scripts", "release-easy-smoke.mjs"), join(consumer, "easy-smoke.mjs"));
+run(["node", "easy-smoke.mjs"], consumer);
 await writeFile(join(consumer, "consumer.mts"), `
 import { createCliDependencies, createKnowledgeScopeClient } from "@schift-io/knowledge-scope";
 import { InstallationIdSchema, CapabilityBatchExecutionRequestSchema } from "@schift-io/knowledge-scope/context-pack";
@@ -100,6 +102,6 @@ void client.runBatch(CapabilityBatchExecutionRequestSchema.parse({
 }));
 `);
 run(["node", join(packages, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "consumer.mts"], consumer);
-const report = { status: "verified", artifact: tarball, sha256, files: inventory, installedSmoke: "passed", localFirstUseSmoke: "passed", isolatedSource: isolated };
+const report = { status: "verified", artifact: tarball, sha256, files: inventory, installedSmoke: "passed", localFirstUseSmoke: "passed", easyProjectSmoke: "passed", isolatedSource: isolated };
 await writeFile(join(output, "release-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

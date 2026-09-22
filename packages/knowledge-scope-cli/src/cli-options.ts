@@ -4,6 +4,10 @@ export class CliUsageError extends Error {
 }
 
 const specifications: Readonly<Record<string, Readonly<{ count: number; values: readonly string[]; flags?: readonly string[] }>>> = {
+  connect: { count: 1, values: ["--project"], flags: ["--json"] },
+  ask: { count: 1, values: ["--project"], flags: ["--json"] },
+  refresh: { count: 0, values: ["--project"], flags: ["--json"] },
+  help: { count: 0, values: [], flags: ["--json"] },
   init: { count: 1, values: [] }, validate: { count: 1, values: [] }, lock: { count: 1, values: [] },
   mount: { count: 1, values: ["--bindings", "--api-url"] },
   inspect: { count: 1, values: ["--api-url"] },

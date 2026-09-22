@@ -19,8 +19,10 @@ import { localQuickstart, type LocalDocumentImportPort } from "./local-quickstar
 import { queryProject } from "./local-query.js";
 import { doctor } from "./doctor.js";
 import { OnboardingError, type OnboardingEnvironment } from "./onboarding-config.js";
+import { connectLocalProject, askLocalProject, refreshLocalProject } from "./local-project.js";
+import { displayError, displayResult, FIRST_USE_HELP } from "./cli-display.js";
 
-const COMMANDS = ["init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "query", "doctor"] as const;
+const COMMANDS = ["connect", "ask", "refresh", "help", "init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "query", "doctor"] as const;
 const HELP = {
   bin: "schift-ks", commands: COMMANDS,
   start: { example: "schift-ks quickstart ./my-project --source ./notes.md --query 'What is the refund policy?'", supported: [".md", ".txt", "directory"], accountRequired: false, behavior: "Imports a local snapshot; no upload or model calls." },
@@ -122,6 +124,10 @@ const execute = async (argv: readonly string[], dependencies: CliDependencies): 
   const apiUrl = option(args, "--api-url");
   const application = apiUrl === undefined ? dependencies.embedded : dependencies.remote(apiUrl);
   switch (command) {
+    case "help": return HELP;
+    case "connect": return connectLocalProject({ directory: option(args, "--project") ?? ".schift-ks", source: positional[0] ?? "" }, dependencies);
+    case "ask": return askLocalProject({ directory: option(args, "--project") ?? ".schift-ks", query: positional[0] ?? "" }, dependencies);
+    case "refresh": return refreshLocalProject({ directory: option(args, "--project") ?? ".schift-ks" }, dependencies);
     case "quickstart": {
       const source = option(args, "--source");
       if (source !== undefined) return localQuickstart({ directory: positional[0] ?? "", source, tenant: option(args, "--tenant") ?? "local-tenant", query: requiredOption(args, "--query") }, dependencies);
@@ -194,11 +200,15 @@ export const runKnowledgeScopeCli = async (
   dependencies: CliDependencies,
   streams: CliStreams,
 ): Promise<number> => {
+  const human = !argv.includes("--json") && (argv.length === 0 || ["connect", "ask", "refresh", "help"].includes(argv[0] ?? ""));
+  const projectIndex = argv.indexOf("--project");
+  const directory = projectIndex < 0 ? ".schift-ks" : argv[projectIndex + 1] ?? ".schift-ks";
   try {
-    streams.stdout(JSON.stringify(await execute(argv, dependencies)));
+    const result = await execute(argv, dependencies);
+    streams.stdout(human ? (argv.length === 0 || argv[0] === "help" ? FIRST_USE_HELP : displayResult(result, directory)) : JSON.stringify(result));
     return 0;
   } catch (error) { // no-excuse-ok: catch -- CLI boundary emits only stable redacted errors.
-    streams.stderr(JSON.stringify({ code: errorCode(error), status: "error", ...(error instanceof OnboardingError ? error.details : {}) }));
+    streams.stderr(human ? displayError(errorCode(error), directory) : JSON.stringify({ code: errorCode(error), status: "error", ...(error instanceof OnboardingError ? error.details : {}) }));
     return 1;
   }
 };
