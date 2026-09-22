@@ -89,8 +89,8 @@ team maintains—not whether adding KS makes every answer better.
 ## Use with a coding agent
 
 The [official `schift-knowledge-scope` skill](skills/schift-knowledge-scope/SKILL.md) guides an
-agent through installing the CLI, connecting only material you select, reusing the resulting
-installation, and presenting retrieved evidence with citations.
+agent through selecting a project for the **current conversation or task**, connecting only
+material you select, and reusing that binding for follow-up questions with citations.
 
 Install the skill from this repository with the separate Skills CLI:
 
@@ -101,14 +101,41 @@ npx skills add schift-io/knowledge-scope --skill schift-knowledge-scope
 Review the offered target agent and installation scope. To try a local checkout of this repository
 instead, run `npx skills add . --skill schift-knowledge-scope` at its root. The skill lives in
 this GitHub repository; it is **not bundled in npm 0.2.0**. Skill installation and KS runtime
-installation are separate steps.
+installation are separate steps. Installing a skill globally or for a project makes the instructions
+discoverable; it does **not** activate that project's data in every conversation.
 
 Then ask your agent:
 
-> Use schift-knowledge-scope to connect `./my-documents` to a new local project. Find the refund
+> For this session, use schift-knowledge-scope with `./my-documents` as project A. Find the refund
 > policy and show the supporting passage and citation. Do not upload these files to a service.
 
-Or: “이 폴더를 KS로 연결하고, 환불 규정의 근거와 출처를 찾아줘. 외부로 업로드하지 마.”
+Or: “이번 세션은 A 프로젝트로. `./my-documents`를 KS로 연결하고 환불 규정의 근거와 출처를 찾아줘. 외부로 업로드하지 마.”
+
+```text
+New conversation/fork: no active project
+  → You select project A → agent connects or inspects the selected installation
+  → “같은 자료로 배송 기간은?” → reuse A, retrieve evidence again
+  → You select project B → stop using A's evidence, validate B before querying
+  → Session ends → stop session use; stored installations remain
+```
+
+In a new conversation, explicitly ask “새 세션에서 A 프로젝트 이어 쓰기. `./support-project`의
+기존 연결을 확인하고 사용해줘.” The agent checks that selected project's installation and current
+revision before resuming. It must not choose the latest installation merely from the working
+directory, or silently inherit a fork's active data binding.
+
+The skill keeps only the working directory, selected source, KS state directory, installation ID,
+and revision as binding metadata in the current conversation context—not a global session registry
+or a new permanent store of source text and conversation logs. Retrieved passages still enter your
+agent host's context and may be retained under that host's own history policy. Switching projects
+means not using previous evidence; it cannot erase prior messages from the host.
+
+**Session selection is an agent workflow, not a new runtime isolation feature.** There are no
+automatic startup/end hooks. Ending a conversation does not unmount an installation, purge source
+snapshots, or revoke server access. Installations persist separately; local snapshots have the
+generated 24-hour freshness rule. Explicit `unmount` retains an inactive record and stored text.
+Provider permissions still apply; the Schift Search adapter rejects `namespace`/`subject`/`session`
+narrowing rather than claiming to enforce it.
 
 This is an instruction-based usage skill, not a bundled MCP server or the proposed Let Skill
 compiler. It cannot grant access, override runtime checks, or guarantee that every agent host

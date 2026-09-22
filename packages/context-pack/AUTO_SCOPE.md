@@ -145,7 +145,8 @@ lanes; this local lexical path must not claim to implement them.
 
 User: a developer deciding whether KS belongs in their app, or an agent using a selected KS project.
 Job: understand the input/output boundary and safely complete setup, repeated retrieval, and recovery.
-First action: choose the CLI/SDK guide or the [official usage skill](../../skills/schift-knowledge-scope/SKILL.md).
+First action: choose the CLI/SDK guide or bind selected knowledge to this conversation with the
+[official usage skill](../../skills/schift-knowledge-scope/SKILL.md).
 
 - [x] Add a self-contained usage skill and host metadata without modifying the execution runtime.
 - [x] Explain where KS fits, when direct file search is simpler, and which responsibilities stay with the app.
@@ -160,12 +161,20 @@ First action: choose the CLI/SDK guide or the [official usage skill](../../skill
       lexical overlap yields a ready but irrelevant passage.
 - [x] Validate skill metadata, documentation links/anchors, and local Markdown previews at mobile
       and desktop widths; public source build/typecheck and 63 contract + 237 CLI/SDK tests pass.
+- [x] Make the usage skill session-based: select once, reuse for follow-ups, suspend on failed
+      validation, require selection in a new conversation, and verify explicit project switches.
+- [x] Run independent two-conversation tests: A follow-up reuse, unbound new conversation,
+      explicit B selection and switch, and session close without unmount or data deletion.
 - [ ] Publish the new skill and explanation changes to the public repository after approval.
 
 The independent agent reused one installation across separate CLI processes. This does not certify
 automatic skill selection in every host/version, future agent-session continuity, or general
 prompt-injection resistance. No global skills, runtime dependencies, npm version, or private
 customer sources were changed. The usage skill is not the proposed Let Skill compiler or an MCP server.
+
+Session binding is assistant workflow, not runtime session isolation. It adds no session database,
+automatic lifecycle hook, implicit global default, or permission bypass; previous chat history
+is retained according to the host, and existing installation state remains independent.
 
 
 ## External validation — open

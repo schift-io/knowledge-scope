@@ -116,3 +116,22 @@ not a general prompt-injection-resistance guarantee.
 The workflow reused the installation across separate CLI processes. Automatic skill selection
 inside every agent product, a later interactive session, and live customer data were not tested.
 
+## Session-scoped skill check
+
+A separate two-conversation test used two synthetic projects with different refund policies.
+The CLI/runtime was the unchanged published 0.2.0 package.
+
+| Conversation action | Observed behavior |
+| --- | --- |
+| Select project A for this session and ask about refunds | Inspected A, queried A, cited its seven-day return window. |
+| Ask a delivery follow-up in that same session | Queried the same A installation; no reimport or repeated project-selection prompt. |
+| Start a new conversation asking for a KS refund rule without selecting a project | Asked which project to use; did not inspect or query an arbitrary existing installation. |
+| Select B in the new conversation | Inspected B and used only B. A Korean query over English text had no match; an explicit English query returned B's thirty-day rule. |
+| Switch the first conversation explicitly from A to B | Verified B before querying and used B's citation instead of A's previous evidence. |
+| End KS use in that conversation while retaining shared installations | Closed the assistant's binding without unmounting or deleting stored data. |
+
+These observations test an instruction-based session workflow. They do not establish a new
+runtime session permission boundary, automatic host startup/end hooks, deletion of prior chat
+messages, or general behavior guarantees for every model. Existing installation state and
+24-hour snapshot freshness are separate from conversation selection.
+

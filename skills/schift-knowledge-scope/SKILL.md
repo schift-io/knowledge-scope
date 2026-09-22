@@ -1,6 +1,6 @@
 ---
 name: schift-knowledge-scope
-description: Use Schift Knowledge Scope to connect explicitly selected Markdown or text files to a project, query an existing installation, and return cited evidence. Apply when the user asks to use KS or an established KS project; not for general file search or building agents.
+description: Use Schift Knowledge Scope to bind explicitly selected project knowledge to the current conversation, reuse it for relevant questions, and return cited evidence. Apply when the user asks to use KS or a selected KS project; not for general file search or building agents.
 ---
 
 # Schift Knowledge Scope
@@ -9,9 +9,26 @@ Use the published `@schift-io/knowledge-scope@0.2.0` CLI to retrieve project evi
 
 Typical requests: “Connect these support notes with KS” or “Ask our existing KS project about refunds.” Do not select KS merely because a user asks to read a file, summarize arbitrary documents, or create a chatbot.
 
-## Start or reuse a project
+## Bind knowledge to this session
 
-1. Identify the application working directory, the user's explicitly selected source, and whether a KS installation already exists. Do not scan the home directory or entire repository to discover possible knowledge. If the source or project is ambiguous, ask for that selection.
+The active binding belongs to the **current conversation/task**, not a global default or the most recently used project. Session binding is assistant workflow, not a new runtime authorization mechanism. Do not add `effectiveScope.session` or invent a host/session ID: the existing local provider does not support session scope enforcement.
+
+| Workflow state | Behavior |
+| --- | --- |
+| Unbound | Ask which project/source to use if the user has not selected one. Inspect that installation or perform requested setup before binding. |
+| Bound | Reuse the verified binding for relevant questions in this same session. Do not reimport or ask for the same permission each turn. |
+| Suspended | Stop using prior candidates when access, freshness, revision validation, or binding context fails. Explain recovery; do not silently choose another installation. |
+| Closed | Stop using the binding when the user ends KS use or the session ends. This does not unmount or delete anything. |
+
+These are workflow labels, not CLI statuses. Keep only a concise binding in current session context: application working directory, selected project/source, KS state location, `installationId`, and last verified mount revision. Do not persist a global session-binding file, raw passages, credentials, or a chat log. Existing runtime installation files remain runtime state, not consent for a conversation.
+
+A new conversation, fork, or task starts **unbound**, even in the same working directory or with inherited notes about a previous binding. A user can resume by naming/selecting the project; inspect it anew. If compaction or context loss makes the selected binding uncertain, suspend and ask for the project instead of guessing.
+
+An explicit project switch replaces the binding only after verification. Stop using old candidates and answer assumptions; never merge candidates from the previous binding. This does not erase earlier messages or override the host's conversation-retention policy. If confidentiality requires separating conversations, use an appropriately isolated session rather than claiming that a skill can erase context. Unrelated questions do not require KS retrieval.
+
+## Start or resume the selected project
+
+1. Identify the application working directory and the user's explicitly selected source or existing project. A nearby `installation.json` alone is not selection or consent. Do not scan the home directory or entire repository to discover possible knowledge. If the source or project is ambiguous, ask for that selection.
 2. Check `node --version` and the installed package version in the selected application. The local-file workflow below targets version `0.2.0`; do not assume a `0.1.0` installation supports it. If the user requested setup, install into the chosen application:
 
    ```bash
@@ -26,7 +43,7 @@ Typical requests: “Connect these support notes with KS” or “Ask our existi
    npx --no-install schift-ks inspect '<installation-id>'
    ```
 
-   `inspect` returns the definition, lock, and mount. Check that the mount is active and its scope, tenant, and declared sources match the intended project. A supplied ID or editable file is a pointer, not authority to switch projects. Keep the same local state directory across calls; `SCHIFT_KS_HOME` defaults to `~/.schift/knowledge-scope`.
+   `inspect` returns the definition, lock, and mount. Check that the mount is active and its scope, tenant, and declared sources match the selected project, then record the session binding. A supplied ID or editable file is a pointer, not authority to switch projects. Keep the same local state directory across calls; `SCHIFT_KS_HOME` defaults to `~/.schift/knowledge-scope`.
 
 For a new local project, run from the application directory. Replace both paths with the selected source and a **new**, non-existing project destination; quote paths and questions as literal arguments, never interpolate them as shell code.
 
@@ -38,7 +55,7 @@ npx --no-install schift-ks quickstart './support-project' \
 
 Accepted inputs are UTF-8 `.md`, `.txt`, or a folder containing them. No Schift account or model token is required. `quickstart` creates a definition and private bindings, imports a local snapshot, mounts it, and searches. Reuse the returned `installationId`; local quickstart defaults to tenant `local-tenant`. Do not store source text, returned payloads, credentials, or private state in tracked agent instructions or the portable Pack.
 
-If setup fails, read its recovery message. Never overwrite an existing destination to retry. `artifactsComplete: false` means partial setup, not a usable installation.
+After successful setup, inspect the returned installation and establish the session binding. If setup fails, read its recovery message. Never overwrite an existing destination to retry. `artifactsComplete: false` means partial setup, not a usable installation.
 
 ## Ask and interpret evidence
 
@@ -46,7 +63,7 @@ If setup fails, read its recovery message. Never overwrite an existing destinati
 npx --no-install schift-ks query '<installation-id>' --query '배송 기간'
 ```
 
-The convenience `query` command runs the declared `search` operation. Do not invent operations for a mount with a different definition.
+Use the bound installation and state location for each new relevant question; retrieve fresh results rather than reusing earlier candidates. The convenience `query` command runs the declared `search` operation. Do not invent operations for a mount with a different definition. Honor runtime freshness and revision checks; on a revision conflict, reinspect the selected mount and reconcile it with the binding before continuing. Do not silently accept changes to scope, tenant, or sources.
 
 - **Quickstart:** inspect nested `result.status`; outer `status: "completed"` means the command completed, not that it found usable evidence.
 - **Query:** inspect the directly returned `status`.
@@ -70,7 +87,7 @@ npx --no-install schift-ks doctor '<installation-id>'
 
 Default `doctor` does not retrieve evidence (`evidenceVerified: false`). A requested `doctor --probe --query '...'` runs retrieval and may consume usage on a hosted provider.
 
-For an explicitly requested disconnection, inspect the current mount revision, then:
+“Stop using KS in this chat” closes only the session binding. There is no automatic session-end hook; do not claim one, revoke shared mounts, or delete snapshots when closing a conversation. For an explicitly requested runtime disconnection, inspect the current mount revision, then:
 
 ```bash
 npx --no-install schift-ks unmount '<installation-id>' --expected-revision <current-revision>
