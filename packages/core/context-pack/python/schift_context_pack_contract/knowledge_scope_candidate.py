@@ -174,6 +174,11 @@ class SchiftSearchEvidence(ContractModel):
     index_ref: KnowledgeIdentifier = Field(alias="indexRef")
 
 
+class LocalDocumentsEvidence(ContractModel):
+    kind: Literal["local_documents"]
+    index_ref: KnowledgeIdentifier = Field(alias="indexRef")
+
+
 class WebSearchEvidence(ContractModel):
     kind: Literal["web_search"]
     provider: Literal["customer", "schift"]
@@ -183,6 +188,7 @@ ProviderEvidence = Annotated[
     RecordsOperationEvidence
     | OpenConnectorActionEvidence
     | SchiftSearchEvidence
+    | LocalDocumentsEvidence
     | WebSearchEvidence,
     Field(discriminator="kind"),
 ]

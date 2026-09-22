@@ -4,6 +4,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 
 import { KnowledgeScopeProductError } from "./errors.js";
 import { HttpProviderAdapterError } from "./adapters/provider-port.js";
+import { LocalDocumentError } from "./local-documents/files.js";
 import { CapabilityBatchExecutionRequestSchema } from "@schift-io/context-pack";
 import { AdmitBodySchema, RemoteMountRequestSchema, RunBatchBodySchema, RunBodySchema, UnmountBodySchema, type KnowledgeScopeApplicationPort } from "./api-contract.js";
 export type { MountApplicationRequest, RunApplicationRequest, RunBatchApplicationRequest, AdmitApplicationRequest, UnmountApplicationRequest, KnowledgeScopeApplicationPort } from "./api-contract.js";
@@ -123,6 +124,7 @@ export const createKnowledgeScopeApi = (options: ApiOptions): Api => {
     } catch (error) { // no-excuse-ok: catch -- HTTP trust boundary redacts unexpected failures.
       if (error instanceof KnowledgeScopeApiError) return errorResponse(error.code, error.status);
       if (error instanceof HttpProviderAdapterError) return errorResponse(error.code, 502);
+      if (error instanceof LocalDocumentError) return errorResponse(error.code, error.code === "local_snapshot_invalid" ? 503 : 400);
       if (error instanceof KnowledgeScopeProductError) return errorResponse(error.code, 400);
       if (error instanceof SyntaxError || error instanceof URIError) return errorResponse("request_invalid", 400);
       return errorResponse("internal_error", 500);

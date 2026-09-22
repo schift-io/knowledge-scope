@@ -93,3 +93,4 @@ export type { RecordsOperationExecutor } from "./adapters/provider-port.js";
 export type { OpenConnectorInputMapper, TrustedEffectiveScope } from "./adapters/types.js";
 export { evaluateRetrieval, compareRetrievalReports, fingerprintRetrievalDataset, RetrievalEvaluationError } from "./evaluation.js";
 export type { RetrievalDataset, RetrievalCapture, RetrievalEvaluationReport } from "./evaluation.js";
+export { LocalDocumentStore, LocalDocumentError, LOCAL_LIMITS } from "./local-documents/index.js";

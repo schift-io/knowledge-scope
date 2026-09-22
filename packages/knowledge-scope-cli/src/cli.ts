@@ -10,16 +10,21 @@ import {
 import { MAX_CANDIDATES } from "./application.js";
 import { CapabilityBatchExecutionRequestSchema } from "@schift-io/context-pack";
 import { HttpProviderAdapterError } from "./adapters/provider-port.js";
+import { LocalDocumentError } from "./local-documents/files.js";
 import { KnowledgeScopeProductError } from "./errors.js";
 import { canonicalJson, type JsonObject, type JsonValue } from "./json.js";
 import { CliUsageError, parseCliOptions } from "./cli-options.js";
 import { quickstart } from "./quickstart.js";
+import { localQuickstart, type LocalDocumentImportPort } from "./local-quickstart.js";
+import { queryProject } from "./local-query.js";
 import { doctor } from "./doctor.js";
 import { OnboardingError, type OnboardingEnvironment } from "./onboarding-config.js";
 
-const COMMANDS = ["init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "doctor"] as const;
+const COMMANDS = ["init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "query", "doctor"] as const;
 const HELP = {
   bin: "schift-ks", commands: COMMANDS,
+  start: { example: "schift-ks quickstart ./my-project --source ./notes.md --query 'What is the refund policy?'", supported: [".md", ".txt", "directory"], accountRequired: false, behavior: "Imports a local snapshot; no upload or model calls." },
+  followUp: "schift-ks query <installation-id> --query 'Your next question'",
   serve: { apiTokenEnvironment: "SCHIFT_KS_API_TOKEN", loopbackOnly: true, tokenRequired: true },
 } as const;
 
@@ -30,6 +35,7 @@ export type PortableAuthoringPort = Readonly<{
 }>;
 export type CliDependencies = Readonly<{
   environment?: OnboardingEnvironment;
+  localDocuments?: LocalDocumentImportPort;
   authoring: PortableAuthoringPort;
   embedded: KnowledgeScopeApplicationPort;
   remote: (apiUrl: string) => KnowledgeScopeApplicationPort;
@@ -116,7 +122,12 @@ const execute = async (argv: readonly string[], dependencies: CliDependencies): 
   const apiUrl = option(args, "--api-url");
   const application = apiUrl === undefined ? dependencies.embedded : dependencies.remote(apiUrl);
   switch (command) {
-    case "quickstart": return quickstart({ directory: positional[0] ?? "", index: requiredOption(args, "--index"), tenant: requiredOption(args, "--tenant"), query: requiredOption(args, "--query") }, dependencies, dependencies.environment ?? {});
+    case "quickstart": {
+      const source = option(args, "--source");
+      if (source !== undefined) return localQuickstart({ directory: positional[0] ?? "", source, tenant: option(args, "--tenant") ?? "local-tenant", query: requiredOption(args, "--query") }, dependencies);
+      return quickstart({ directory: positional[0] ?? "", index: requiredOption(args, "--index"), tenant: requiredOption(args, "--tenant"), query: requiredOption(args, "--query") }, dependencies, dependencies.environment ?? {});
+    }
+    case "query": return queryProject({ installationId: positional[0] ?? "", query: requiredOption(args, "--query") }, application);
     case "doctor": return doctor({ installationId: positional[0] ?? "", ...(args.includes("--probe") ? { query: requiredOption(args, "--query") } : {}) }, application, dependencies.environment ?? {});
     case "init": return initialize(positional[0] ?? (() => { throw new CliUsageError("argument_missing"); })());
     case "validate": return dependencies.authoring.validate(positional[0] ?? (() => { throw new CliUsageError("argument_missing"); })());
@@ -171,7 +182,7 @@ const execute = async (argv: readonly string[], dependencies: CliDependencies): 
 };
 
 const errorCode = (error: unknown): string => {
-  if (error instanceof OnboardingError || error instanceof CliUsageError || error instanceof KnowledgeScopeApiError ||
+  if (error instanceof LocalDocumentError || error instanceof OnboardingError || error instanceof CliUsageError || error instanceof KnowledgeScopeApiError ||
     error instanceof KnowledgeScopeProductError || error instanceof HttpProviderAdapterError) {
     return error.code;
   }

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Literal, assert_never
 
 from schift_context_pack_contract.knowledge_scope_candidate import (
     CandidateEnvelope,
+    LocalDocumentsEvidence,
     OpenConnectorActionEvidence,
     ProviderEvidence,
     RecordsOperationEvidence,
@@ -16,6 +17,7 @@ from schift_context_pack_contract.knowledge_scope_candidate import (
     WebSearchEvidence,
 )
 from schift_context_pack_contract.knowledge_scope_capabilities import (
+    LocalDocumentsProvider,
     OpenConnectorActionProvider,
     QueryCapability,
     RecordsOperationProvider,
@@ -65,7 +67,12 @@ def _records_denial(
     match evidence:
         case RecordsOperationEvidence(operation_id=operation_id):
             return None if operation_id == provider.operation_id else "provider_evidence_mismatch"
-        case OpenConnectorActionEvidence() | SchiftSearchEvidence() | WebSearchEvidence():
+        case (
+            OpenConnectorActionEvidence()
+            | SchiftSearchEvidence()
+            | LocalDocumentsEvidence()
+            | WebSearchEvidence()
+        ):
             return "provider_evidence_mismatch"
         case unreachable:
             assert_never(unreachable)
@@ -88,7 +95,12 @@ def _connector_denial(
             if not connector.connector_run_id:
                 return "connector_run_missing"
             return None if connector.audit_persisted else "connector_audit_missing"
-        case RecordsOperationEvidence() | SchiftSearchEvidence() | WebSearchEvidence():
+        case (
+            RecordsOperationEvidence()
+            | SchiftSearchEvidence()
+            | LocalDocumentsEvidence()
+            | WebSearchEvidence()
+        ):
             return "provider_evidence_mismatch"
         case unreachable:
             assert_never(unreachable)
@@ -100,7 +112,29 @@ def _search_denial(
     match evidence:
         case SchiftSearchEvidence(index_ref=index_ref):
             return None if index_ref == provider.index_ref else "provider_evidence_mismatch"
-        case RecordsOperationEvidence() | OpenConnectorActionEvidence() | WebSearchEvidence():
+        case (
+            RecordsOperationEvidence()
+            | OpenConnectorActionEvidence()
+            | LocalDocumentsEvidence()
+            | WebSearchEvidence()
+        ):
+            return "provider_evidence_mismatch"
+        case unreachable:
+            assert_never(unreachable)
+
+
+def _local_documents_denial(
+    provider: LocalDocumentsProvider, evidence: ProviderEvidence
+) -> ProviderDenial | None:
+    match evidence:
+        case LocalDocumentsEvidence(index_ref=index_ref):
+            return None if index_ref == provider.index_ref else "provider_evidence_mismatch"
+        case (
+            RecordsOperationEvidence()
+            | OpenConnectorActionEvidence()
+            | SchiftSearchEvidence()
+            | WebSearchEvidence()
+        ):
             return "provider_evidence_mismatch"
         case unreachable:
             assert_never(unreachable)
@@ -110,7 +144,12 @@ def _web_denial(provider: WebSearchProvider, evidence: ProviderEvidence) -> Prov
     match evidence:
         case WebSearchEvidence(provider=actual):
             return None if actual == provider.provider else "provider_evidence_mismatch"
-        case RecordsOperationEvidence() | OpenConnectorActionEvidence() | SchiftSearchEvidence():
+        case (
+            RecordsOperationEvidence()
+            | OpenConnectorActionEvidence()
+            | SchiftSearchEvidence()
+            | LocalDocumentsEvidence()
+        ):
             return "provider_evidence_mismatch"
         case unreachable:
             assert_never(unreachable)
@@ -129,6 +168,8 @@ def provider_denial(
             return _connector_denial(provider, candidate.provider_evidence, binding)
         case SchiftSearchProvider() as provider:
             return _search_denial(provider, candidate.provider_evidence)
+        case LocalDocumentsProvider() as provider:
+            return _local_documents_denial(provider, candidate.provider_evidence)
         case WebSearchProvider() as provider:
             return _web_denial(provider, candidate.provider_evidence)
         case unreachable:

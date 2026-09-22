@@ -34,6 +34,9 @@ const ProviderEvidenceSchema = z.discriminatedUnion("kind", [
     kind: z.literal("schift_search"), indexRef: KnowledgeScopeIdentifierSchema,
   }).strict(),
   z.object({
+    kind: z.literal("local_documents"), indexRef: KnowledgeScopeIdentifierSchema,
+  }).strict(),
+  z.object({
     kind: z.literal("web_search"), provider: z.enum(["customer", "schift"]),
   }).strict(),
 ]).readonly();

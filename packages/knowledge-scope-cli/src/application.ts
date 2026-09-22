@@ -69,6 +69,7 @@ const providerReference = (capability: QueryCapability): string => {
     case "records_operation": return capability.provider.operationId;
     case "open_connector_action": return capability.provider.actionId;
     case "schift_search": return capability.provider.indexRef;
+    case "local_documents": return capability.provider.indexRef;
     case "web_search": return capability.provider.provider;
   }
 };

@@ -92,6 +92,7 @@ const bindingMatchesCapability = (
       return binding.providerRef === capability.provider.actionId &&
         binding.connectorRef === capability.provider.connectorRef;
     case "schift_search":
+    case "local_documents":
       return binding.providerRef === capability.provider.indexRef && binding.connectorRef === undefined;
     case "web_search":
       return binding.providerRef === capability.provider.provider && binding.connectorRef === undefined;

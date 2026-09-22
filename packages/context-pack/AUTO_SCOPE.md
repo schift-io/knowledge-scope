@@ -51,7 +51,7 @@ installation owner validates and mounts it.
    Scope before any downstream context consumer sees it.
 4. Open Connector keeps provider catalog, OAuth, credentials, action execution, and run logs. Schift
    retains only the declared `operationId` → `actionId` mapping and correlation identifiers.
-   Open Connector is a separately operated service; its source is not included in this repository.
+   This is the Open Connector product in `core-dependencies/schift-connector`.
 5. Schift Search currently accepts tenant-root execution backed by its organization/bucket ACL.
    `namespace`, `subject`, and `session` narrowing fail before HTTP because v2 Search does not enforce
    those fields. A local Scope label alone does not establish provider data isolation.
@@ -79,6 +79,52 @@ installation owner validates and mounts it.
       including independently insufficient runs, restart admission, and unmount denial.
 - [x] Public npm publication of `@schift-io/knowledge-scope@0.1.0`, tagged `latest`; the downloaded
       registry artifact matches the approved SHA-256 and passes the installed CLI/SDK lifecycle smoke.
+- [x] Public source and developer guides at
+      [schift-io/knowledge-scope](https://github.com/schift-io/knowledge-scope), with independent
+      TypeScript/CLI and Python verification workflows and no private monorepo history.
+- [x] Public [v0.1.0 release](https://github.com/schift-io/knowledge-scope/releases/tag/v0.1.0)
+      includes the exact approved npm archive and SHA-256 manifest;
+      [GitHub CI](https://github.com/schift-io/knowledge-scope/actions/runs/35728138385)
+      passes both TypeScript/CLI and Python jobs.
+
+## Account-free first use — 0.2.0 implemented, not published
+
+User: an AI application developer with local Markdown or text, but no Schift account.
+Job: select their own material, ask a question, inspect cited evidence, and reuse it in an app.
+Done when: a clean installed artifact completes this path without network, model, or provider credentials.
+Primary action: `schift-ks quickstart <new-workspace> --source <path> --query <question>`.
+
+```text
+Choose .md/.txt file or folder -> bounded private local snapshot -> cited retrieval
+  -> inspect ready/insufficient evidence -> query again or consume through SDK
+```
+
+- [x] Add portable local-document provider identity and matching TypeScript/Python admission.
+- [x] Import bounded UTF-8 text into an owner-only snapshot outside the portable Pack.
+- [x] Retrieve lexical matches with content revisions and line citations; reject unsafe files,
+      unsupported filtering, missing snapshots, and inadequate evidence.
+- [x] Add account-free quickstart and repeat-query commands while preserving hosted setup.
+- [x] Document one local start path, supported formats, snapshot refresh, and app consumption.
+- [x] Verify actual-file CLI, restarted SDK, isolation/failure paths, and clean installed artifact.
+- [x] Fix a reproduced source-ancestor swap before accepting imported text; verify selected file
+      identity, reject hardlinks, and preserve typed redacted errors across CLI and HTTP.
+
+Verification (2026-09-22): 237 CLI/SDK tests, 63 TypeScript contract tests, and 141 Python contract
+tests passed. Isolated release build/typecheck, existing hosted/batch smoke, and the new installed
+Node.js local-file smoke passed. The latter covers Korean retrieval, line citations, no-match
+withholding, restarted SDK, snapshot reuse/refresh, foreign-scope denial, and unmount revocation.
+Local HTTP and expired-snapshot tests passed; independent security re-review found no remaining
+confirmed blocker within the filesystem-owner boundary. This is not a sandbox against malicious
+processes with the same OS identity. Dependency audit reported zero known vulnerabilities.
+
+The verified local `schift-io-knowledge-scope-0.2.0.tgz` SHA-256 is
+`4ea1769fa17425c93de3d0a4fe7e027f601fc577ed7e39e92375f3accbada1ad`.
+Public npm/GitHub remain at the previously published 0.1.0; 0.2.0 publication is a separate action.
+
+Implementation scope: no new dependencies, no customer data in examples, no remote publication,
+no provider/account configuration, and no private-monorepo upload. Existing shared contracts stay
+additive. PDF/office parsing, URL fetching, MCP, semantic retrieval, and managed sync are separate
+lanes; this local lexical path must not claim to implement them.
 
 ## External validation — open
 

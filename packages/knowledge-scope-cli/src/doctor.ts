@@ -21,7 +21,9 @@ export const doctor = async (
   const report = { installationId: mount.installationId, integrity, state: mount.state, environment: [...new Set(issues)], configured };
   if (request.query === undefined) return { ...report, status: configured ? "configured" : "attention_required", evidenceVerified: false };
   if (!configured) throw new OnboardingError("configuration_invalid", { ...report });
-  const capability = definition.capabilities.find((entry) => entry.provider.kind === "schift_search" && mount.sourceBindings.some((binding) => binding.operationIds.includes(entry.operationId)));
+  const capability = definition.capabilities.find((entry) =>
+    (entry.provider.kind === "schift_search" || entry.provider.kind === "local_documents") &&
+    mount.sourceBindings.some((binding) => binding.operationIds.includes(entry.operationId)));
   if (capability === undefined) throw new OnboardingError("probe_operation_unavailable");
   const result = await application.run({ installationId: mount.installationId, operationId: capability.operationId, effectiveScope: { tenant: mount.scopeAuthority.tenant }, expectedRevision: mount.revision, input: { query: request.query } });
   return { ...report, status: "probed", result };

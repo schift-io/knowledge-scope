@@ -10,6 +10,9 @@ export const doctorConfiguration = (inspection: Readonly<{ definition: Knowledge
   for (const capability of definition.capabilities.filter((entry) => mount.sourceBindings.some((binding) => binding.operationIds.includes(entry.operationId)))) {
     let scopeEnvironment: string | undefined;
     switch (capability.provider.kind) {
+      case "local_documents":
+        if ((capability.requiredProviderScopes?.length ?? 0) > 0) issues.push("local_documents_provider_scopes_unsupported");
+        break;
       case "schift_search":
         issues.push(...searchConfiguration(environment));
         if (environment["SCHIFT_KS_SEARCH_ORGANIZATION_ID"] !== mount.scopeAuthority.organizationId) issues.push("SCHIFT_KS_SEARCH_ORGANIZATION_ID");

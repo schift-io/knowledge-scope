@@ -38,6 +38,11 @@ class SchiftSearchProvider(ContractModel):
     index_ref: KnowledgeIdentifier = Field(alias="indexRef")
 
 
+class LocalDocumentsProvider(ContractModel):
+    kind: Literal["local_documents"]
+    index_ref: KnowledgeIdentifier = Field(alias="indexRef")
+
+
 class WebSearchProvider(ContractModel):
     kind: Literal["web_search"]
     provider: Literal["customer", "schift"]
@@ -47,6 +52,7 @@ QueryProvider = Annotated[
     RecordsOperationProvider
     | OpenConnectorActionProvider
     | SchiftSearchProvider
+    | LocalDocumentsProvider
     | WebSearchProvider,
     Field(discriminator="kind"),
 ]

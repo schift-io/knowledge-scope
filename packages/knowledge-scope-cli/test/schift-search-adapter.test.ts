@@ -50,6 +50,8 @@ const retrieveBody = {
 let server: ReturnType<typeof Bun.serve>
 let baseUrl = ""
 const observed: Array<Readonly<{ method: string; url: string; body: unknown; headers: Headers }>> = []
+const transportResponses: Array<Readonly<{ status: number; fixture: string | null }>> = []
+const transportErrors: unknown[] = []
 
 beforeAll(() => {
   server = Bun.serve({
@@ -74,10 +76,8 @@ const transport: HttpTransport = async (request) => {
     ...(request.body === undefined ? {} : { body: request.body }),
     signal: request.signal,
     redirect: request.redirect,
-  })
-  expect({ status: response.status, fixture: response.headers.get("x-ks-test-fixture") }).toEqual({
-    status: 200, fixture: "schift-search-adapter",
-  })
+  }).catch((error: unknown) => { transportErrors.push(error); throw error })
+  transportResponses.push({ status: response.status, fixture: response.headers.get("x-ks-test-fixture") })
   return response
 }
 
@@ -113,7 +113,14 @@ const twoCallTransport = (
 describe("Schift Search adapter", () => {
   test("uses status plus retrieve and returns evidence-only ProviderResult facts", async () => {
     observed.length = 0
+    transportResponses.length = 0
+    transportErrors.length = 0
     const result = await runWith()
+    expect(transportErrors).toEqual([])
+    expect(transportResponses).toEqual([
+      { status: 200, fixture: "schift-search-adapter" },
+      { status: 200, fixture: "schift-search-adapter" },
+    ])
     expect(result).toEqual({
       ok: true,
       facts: [{

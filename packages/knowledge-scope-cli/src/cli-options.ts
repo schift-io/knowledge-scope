@@ -7,12 +7,13 @@ const specifications: Readonly<Record<string, Readonly<{ count: number; values: 
   init: { count: 1, values: [] }, validate: { count: 1, values: [] }, lock: { count: 1, values: [] },
   mount: { count: 1, values: ["--bindings", "--api-url"] },
   inspect: { count: 1, values: ["--api-url"] },
+  query: { count: 1, values: ["--query", "--api-url"] },
   run: { count: 2, values: ["--input", "--api-url"] },
   "run-batch": { count: 1, values: ["--input", "--api-url"] },
   admit: { count: 1, values: ["--candidate", "--api-url"] },
   unmount: { count: 1, values: ["--expected-revision", "--api-url"] },
   serve: { count: 0, values: ["--host", "--port"] },
-  quickstart: { count: 1, values: ["--index", "--tenant", "--query"] },
+  quickstart: { count: 1, values: ["--source", "--index", "--tenant", "--query"] },
   doctor: { count: 1, values: ["--query"], flags: ["--probe"] },
 };
 
@@ -36,5 +37,6 @@ export const parseCliOptions = (command: string, args: readonly string[]): reado
   if (positional.length < spec.count) throw new CliUsageError("argument_missing");
   if (positional.length > spec.count) throw new CliUsageError("argument_invalid");
   if (command === "doctor" && seen.has("--probe") !== seen.has("--query")) throw new CliUsageError("argument_invalid");
+  if (command === "quickstart" && seen.has("--source") && seen.has("--index")) throw new CliUsageError("argument_invalid");
   return positional;
 };

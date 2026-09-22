@@ -201,6 +201,7 @@ export const createHttpProviderExecutionPort = (
           return parsed.data
         })
       }
+      case "local_documents":
       case "web_search":
         throw new HttpProviderAdapterError("invalid_configuration")
     }

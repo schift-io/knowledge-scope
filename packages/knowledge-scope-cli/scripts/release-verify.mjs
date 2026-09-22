@@ -76,7 +76,7 @@ if (typeof artifact.filename !== "string" || basename(artifact.filename) !== art
 }
 const inventory = artifact.files.map((entry) => entry.path);
 validateReleaseInventory(inventory);
-for (const path of ["dist/main.js", "dist/index.js", "dist/context-pack.js", "dist/types/index.d.ts", "dist/types/context-pack/index.d.ts", "dist/types/context-pack/knowledge-scope-batch.d.ts", "examples/batch-consumer.mjs", "README.md", "LICENSE", "docs/PILOT.md"]) {
+for (const path of ["dist/main.js", "dist/index.js", "dist/context-pack.js", "dist/types/index.d.ts", "dist/types/context-pack/index.d.ts", "dist/types/context-pack/knowledge-scope-batch.d.ts", "examples/batch-consumer.mjs", "examples/local-documents/support-handbook.md", "README.md", "LICENSE", "docs/PILOT.md"]) {
   if (!inventory.includes(path)) throw new Error(`Required artifact missing: ${path}`);
 }
 const tarball = join(output, artifact.filename);
@@ -86,6 +86,8 @@ await writeFile(join(consumer, "package.json"), JSON.stringify({ private: true, 
 run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact", tarball], consumer);
 await cp(join(isolated, "scripts", "release-smoke.mjs"), join(consumer, "smoke.mjs"));
 run(["node", "smoke.mjs"], consumer);
+await cp(join(isolated, "scripts", "release-local-smoke.mjs"), join(consumer, "local-smoke.mjs"));
+run(["node", "local-smoke.mjs"], consumer);
 await writeFile(join(consumer, "consumer.mts"), `
 import { createCliDependencies, createKnowledgeScopeClient } from "@schift-io/knowledge-scope";
 import { InstallationIdSchema, CapabilityBatchExecutionRequestSchema } from "@schift-io/knowledge-scope/context-pack";
@@ -98,6 +100,6 @@ void client.runBatch(CapabilityBatchExecutionRequestSchema.parse({
 }));
 `);
 run(["node", join(packages, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "consumer.mts"], consumer);
-const report = { status: "verified", artifact: tarball, sha256, files: inventory, installedSmoke: "passed", isolatedSource: isolated };
+const report = { status: "verified", artifact: tarball, sha256, files: inventory, installedSmoke: "passed", localFirstUseSmoke: "passed", isolatedSource: isolated };
 await writeFile(join(output, "release-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

@@ -1,61 +1,88 @@
 # Schift Knowledge Scope CE
 
-Connect an existing Schift Search index to your AI application and return cited evidence within
-one project's declared access boundary. Your application chooses the model and generates the answer.
+Public source, contribution instructions, and releases:
+[schift-io/knowledge-scope](https://github.com/schift-io/knowledge-scope).
+
+Retrieve cited passages from your own Markdown or text files, then pass admitted evidence to your
+AI application. Your application chooses the model and generates the answer.
+
+The local-file quickstart requires **0.2.0 or later**. If you use `0.1.0`, upgrade first or use the
+[hosted Search path](#hosted-search-advanced).
 
 Start with the [first retrieval](#quickstart), then use the SDK in your application. For a customer
 trial, follow the [pilot guide](docs/PILOT.md), which separates local verification from live-customer
 acceptance.
 
-```text
-scope.json + schema files
-          │ validate + lock
-          ▼
-portable KnowledgeScopeDefinition
-          │ mount
-          ▼
-server-owned KnowledgeScopeMount
-          │ declared operation only
-          ▼
-Open Connector / Schift Search / injected records port
-          │ normalize + authorize + admit
-          ▼
-CandidateEnvelope[] + admission receipt
+## Quickstart
+
+Start with a synthetic support handbook; no Schift account, API token, cloud service, or model is
+needed. You need Node.js 20 or later. Run these commands in your application directory:
+
+```bash
+npm install @schift-io/knowledge-scope@0.2.0
+npx --no-install schift-ks quickstart ./support-project \
+  --source ./node_modules/@schift-io/knowledge-scope/examples/local-documents/support-handbook.md \
+  --query '환불 규정'
 ```
 
-## What is implemented
+The destination must be new. Expect `result.status: "ready"` with a passage about the synthetic
+14-day refund window and a citation identifying its source and line range. Local citations use
+`schift://local-documents/...#Lx-Ly`; they identify snapshot evidence, not a public web page or
+file-opening link. The result also includes the original `sourcePath`, whose current contents may
+have changed since import. This is retrieved evidence, not an AI-generated answer. Keep the
+returned `installationId` to ask again:
 
-- [x] Portable Definition and server-owned Mount are separate contracts.
-- [x] The lock covers canonical `scope.json` plus every referenced input/result schema.
-- [x] Local mount state uses owner-only, atomic file persistence and optimistic revisions.
-- [x] Authorization decisions HMAC-bind the complete immutable Candidate evidence projection and
-      survive process restarts.
-- [x] Open Connector executes declared actions through its public runtime API.
-- [x] Schift Search uses the authenticated v2 status + retrieve APIs.
-- [x] Direct named-record execution is available through an injected application port.
-- [x] Candidate admission checks source, operation, provider, permission mode, Scope, citation,
-      freshness, connector audit correlation, and required provider scopes.
-- [x] Aggregate admission enforces every declared `minEvidence` coverage assertion.
-- [x] `run-batch` combines up to eight declared operations under one mount and admits their evidence together.
-- [x] CLI and loopback HTTP API use the same application and persistent state.
-- [x] Public npm package `@schift-io/knowledge-scope@0.1.0`, tagged `latest`.
-- [ ] Schift Cloud multi-tenant persistence, production deployment, and live
-      provider-account certification. Those are separate operational actions.
+```bash
+npx --no-install schift-ks query '<installation-id>' --query '배송 기간'
+```
 
-OBS, Context Runtime/A2A, APM, Agent execution, Workflow execution, and final LLM generation are
-deliberately outside this package.
+Next, substitute your own UTF-8 `.md` or `.txt` file, or a folder containing those files:
 
-## Quickstart
+```bash
+npx --no-install schift-ks quickstart ./my-project \
+  --source ./my-documents --query '환불 규정'
+```
+
+```text
+Your text files -> private local snapshot -> cited evidence -> your application's chosen model
+```
+
+This path uses lexical search, not embeddings, semantic retrieval, or reranking. Use words present
+in the source. A matching passage is not proof that it answers the question. `insufficient_evidence`
+means your application should withhold an answer, not bypass admission.
+
+The source text is copied into a private local snapshot outside the portable Pack. Keep local
+state private; do not publish it with the Pack. Editing the original files does not update an
+existing snapshot. To refresh, run quickstart with a new project directory and use its new
+installation. This is not continuous sync or live document-ACL enforcement. Local filesystem
+access is the security boundary; a tenant label is not user authentication.
+
+The generated policy accepts snapshots for 24 hours after import. After that, import again into a
+new workspace; editing a timestamp is not a refresh. Unmounting revokes the installation but does
+not delete its retained local snapshot. Only ingest trusted, stable local files: symlinks, hardlinks,
+special files, and files changed during capture are rejected.
+
+Limits are 100 files, 1 MiB per file, 8 MiB total text, and 4,000 chunks. A single line may contain
+at most 2,000 characters. Folder scans stop at 2,000 entries or 16 levels; hidden entries and
+`node_modules` are ignored, and other file extensions inside a folder are skipped. An explicitly
+selected unsupported file or a folder with no usable text fails with a recovery message.
+
+PDF, Office files, URLs, crawling, and an MCP adapter are not bundled. Convert supported material
+to approved text outside this package, or use an already populated Search index below. For the
+sample's expected passages and a no-model application command, see the
+[local document example](examples/local-documents/README.md).
+
+## Hosted Search (advanced)
 
 You need Node.js 20 or later and an **already indexed** Schift Search corpus.
 Obtain the Search endpoint, authorized token, organization ID, and index name from its owner.
-This package does not upload, parse, or index your documents. A new empty index will not produce
+This hosted path does not upload, parse, or index your documents. A new empty index will not produce
 usable evidence.
 
 Install the published package in your application directory:
 
 ```bash
-npm install @schift-io/knowledge-scope@0.1.0
+npm install @schift-io/knowledge-scope@0.2.0
 npx --no-install schift-ks --help
 ```
 
@@ -99,7 +126,20 @@ validation before mounting; the recovery command does not claim that incomplete 
 
 ## Use the evidence in your application
 
-The installed package includes a consumer that uses the same local state and provider environment:
+For the local-file path, run the included consumer from your application directory.
+The default local tenant is `local-tenant`; use the returned tenant if you supplied `--tenant`:
+
+```bash
+node node_modules/@schift-io/knowledge-scope/examples/consumer.mjs \
+  '<installation-id>' local-tenant '환불 규정' search
+```
+
+`createCliDependencies().embedded` loads the same local state used by the CLI, including local
+document snapshots. Keep the same `SCHIFT_KS_HOME` if you override the state directory. No model
+credentials are needed to inspect the evidence; your application controls whether to send private
+passages to an external model.
+
+For a hosted Search installation, use its authorized tenant and provider environment instead:
 
 ```bash
 node node_modules/@schift-io/knowledge-scope/examples/consumer.mjs \
@@ -119,6 +159,35 @@ each candidate's citation when assembling context. Your model, prompt, and answe
 For offline retrieval measurements, see the [evaluation example](examples/evaluation/README.md)
 and the [pilot metric definitions](docs/PILOT.md#measure-a-useful-outcome). The included dataset is
 synthetic and makes no accuracy claim about a live provider.
+
+## What is implemented
+
+```text
+scope.json + schemas -> validate + lock -> portable definition
+  -> mount with private bindings -> declared operation
+  -> local documents / Open Connector / Schift Search / injected records
+  -> normalize + authorize + admit -> cited evidence for your application
+```
+
+- [x] Portable Definition and server-owned Mount are separate contracts.
+- [x] The lock covers canonical `scope.json` plus every referenced input/result schema.
+- [x] Local mount state uses owner-only, atomic file persistence and optimistic revisions.
+- [x] Authorization decisions HMAC-bind the complete immutable Candidate evidence projection and
+      survive process restarts.
+- [x] Open Connector executes declared actions through its public runtime API.
+- [x] Schift Search uses the authenticated v2 status + retrieve APIs.
+- [x] Direct named-record execution is available through an injected application port.
+- [x] Candidate admission checks source, operation, provider, permission mode, Scope, citation,
+      freshness, connector audit correlation, and required provider scopes.
+- [x] Aggregate admission enforces every declared `minEvidence` coverage assertion.
+- [x] `run-batch` combines up to eight declared operations under one mount and admits their evidence together.
+- [x] CLI and loopback HTTP API use the same application and persistent state.
+- [x] Local Markdown/text quickstart and repeated queries with cited snapshot evidence.
+- [ ] Schift Cloud multi-tenant persistence, production deployment, and live
+      provider-account certification. Those are separate operational actions.
+
+OBS, Context Runtime/A2A, APM, Agent execution, Workflow execution, and final LLM generation are
+deliberately outside this package.
 
 ## Manual authoring
 
@@ -234,8 +303,7 @@ Provider URLs and credentials are runtime configuration. They are never written 
 the lock, mount state, Candidate output, or errors.
 
 Open Connector is a separately operated service that owns account connections, credentials, and
-its public action runtime. Its implementation is not included in this repository. Configure an
-authorized endpoint:
+its public action runtime. Its implementation is not included in this repository. Configure its endpoint:
 
 ```bash
 export SCHIFT_KS_OPEN_CONNECTOR_URL=http://127.0.0.1:3000
@@ -292,7 +360,7 @@ Start the same application as a loopback service:
 export SCHIFT_KS_ORGANIZATION_ID=org.acme
 export SCHIFT_KS_TENANT=tenant.acme
 export SCHIFT_KS_API_TOKEN='<random owner-only token>'
-node dist/main.js serve --host 127.0.0.1 --port 8787
+npx --no-install schift-ks serve --host 127.0.0.1 --port 8787
 ```
 
 Routes:
@@ -358,21 +426,22 @@ rejected instead of producing different TypeScript/Python digests.
 
 ## Verification
 
-From a clean repository checkout, run the root verification commands with Node.js 20+, npm, and Bun:
+From a clean repository checkout, use the canonical verification command. It installs dependencies
+inside a temporary copy before building and testing:
 
 ```bash
-npm ci
-npm run verify
+cd packages/knowledge-scope-cli
+bun run release:verify
 ```
 
 For an already provisioned development workspace, these individual checks are also available.
 They require its dependencies, including TypeScript, to have been installed:
 
 ```bash
-npm run build
-npm run typecheck
-npm test
-node packages/knowledge-scope-cli/dist/main.js --help
+bun run build
+bun run typecheck
+bun test
+node dist/main.js --help
 ```
 
 The repository E2E suite executes Open Connector and Schift Search against local fake HTTP

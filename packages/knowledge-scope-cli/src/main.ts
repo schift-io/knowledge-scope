@@ -27,6 +27,7 @@ import {
 } from "./json.js";
 import { createPortableLock, loadPortableScope, verifyPortableLock } from "./portable.js";
 import { KnowledgeScopeStateStore } from "./state-store.js";
+import { LocalDocumentStore } from "./local-documents/index.js";
 
 const toJsonValue = (value: unknown): JsonValue => {
   const serialized = JSON.stringify(value);
@@ -194,16 +195,23 @@ export const createCliDependencies = (options: KnowledgeScopeCliOptions = {}): C
   const apiToken = environment["SCHIFT_KS_API_TOKEN"];
   const storageOptions = { environment, ...(options.home === undefined ? {} : { home: options.home }) };
   const store = new KnowledgeScopeStateStore(storageOptions);
+  const localDocuments = new LocalDocumentStore(storageOptions);
+  const httpProvider = environmentProvider(environment);
   const authorization = new KnowledgeScopeAuthorization(storageOptions);
   const application = new KnowledgeScopeApplication({
     store,
     authorization,
-    provider: options.provider ?? environmentProvider(environment),
+    provider: options.provider ?? {
+      execute: (context) => context.capability.provider.kind === "local_documents"
+        ? localDocuments.execute(context)
+        : httpProvider.execute(context),
+    },
   });
   const embedded = applicationPort(application);
   return {
     environment,
     authoring,
+    localDocuments,
     embedded,
     remote: (apiUrl) => createRemoteKnowledgeScopeApplication(apiUrl, globalThis.fetch, apiToken),
     readJson,

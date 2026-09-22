@@ -17,6 +17,7 @@ from schift_context_pack_contract.knowledge_scope_candidate import (  # noqa: TC
 )
 from schift_context_pack_contract.knowledge_scope_capabilities import (
     IdentifierTuple,
+    LocalDocumentsProvider,
     OpenConnectorActionProvider,
     QueryCapability,
     RecordsOperationProvider,
@@ -208,6 +209,8 @@ def _binding_is_coherent(
             return binding.provider_ref == provider_ref and binding.connector_ref == connector_ref
         case SchiftSearchProvider(index_ref=provider_ref):
             return binding.provider_ref == provider_ref
+        case LocalDocumentsProvider(index_ref=provider_ref):
+            return binding.provider_ref == provider_ref and binding.connector_ref is None
         case WebSearchProvider(provider=provider_ref):
             return binding.provider_ref == provider_ref
         case unreachable:

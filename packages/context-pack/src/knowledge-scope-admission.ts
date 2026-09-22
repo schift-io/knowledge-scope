@@ -95,6 +95,9 @@ const providerEvidenceDenial = (
     case "schift_search":
       return evidence.kind === "schift_search" && evidence.indexRef === capability.provider.indexRef
         ? undefined : "provider_evidence_mismatch";
+    case "local_documents":
+      return evidence.kind === "local_documents" && evidence.indexRef === capability.provider.indexRef
+        ? undefined : "provider_evidence_mismatch";
     case "web_search":
       return evidence.kind === "web_search" && evidence.provider === capability.provider.provider
         ? undefined : "provider_evidence_mismatch";

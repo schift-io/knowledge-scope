@@ -26,11 +26,14 @@ const ConnectorProviderSchema = z.object({
 const SearchProviderSchema = z.object({
   kind: z.literal("schift_search"), indexRef: KnowledgeScopeIdentifierSchema,
 }).strict();
+const LocalDocumentsProviderSchema = z.object({
+  kind: z.literal("local_documents"), indexRef: KnowledgeScopeIdentifierSchema,
+}).strict();
 const WebProviderSchema = z.object({
   kind: z.literal("web_search"), provider: z.enum(["customer", "schift"]),
 }).strict();
 export const QueryProviderSchema = z.discriminatedUnion("kind", [
-  RecordsProviderSchema, ConnectorProviderSchema, SearchProviderSchema, WebProviderSchema,
+  RecordsProviderSchema, ConnectorProviderSchema, SearchProviderSchema, LocalDocumentsProviderSchema, WebProviderSchema,
 ]).readonly();
 
 export const QueryCapabilitySchema = z.object({
@@ -124,7 +127,7 @@ const CandidateProviderEvidenceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("open_connector_action"), connectorRef: KnowledgeScopeIdentifierSchema,
     actionId: KnowledgeScopeIdentifierSchema, connectorRunId: KnowledgeScopeIdentifierSchema,
     actionCorrelationId: KnowledgeScopeIdentifierSchema, auditPersisted: z.boolean() }).strict(),
-  SearchProviderSchema, WebProviderSchema,
+  SearchProviderSchema, LocalDocumentsProviderSchema, WebProviderSchema,
 ]).readonly();
 export const CandidateEnvelopeSchema = z.object({
   srn: z.string().regex(/^srn:[a-z0-9][a-z0-9:._/-]+$/), sourceId: SourceIdSchema,

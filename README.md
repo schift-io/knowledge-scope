@@ -1,17 +1,31 @@
 # Schift Knowledge Scope
 
-Retrieve cited evidence for your AI application within a project's declared access boundary.
-Knowledge Scope connects declared operations to existing data providers, validates their evidence,
-and returns it to the model or application you choose.
+Retrieve cited passages from your Markdown or text files, then pass admitted evidence to your AI
+application. Start locally without a Schift account, cloud service, or model credentials. Your
+application chooses the model and generates the answer.
 
 ```bash
-npm install @schift-io/knowledge-scope@0.1.0
-npx --no-install schift-ks --help
+npm install @schift-io/knowledge-scope@0.2.0
+npx --no-install schift-ks quickstart ./support-project \
+  --source ./node_modules/@schift-io/knowledge-scope/examples/local-documents/support-handbook.md \
+  --query '환불 규정'
 ```
 
-Start with the [quickstart](packages/knowledge-scope-cli/README.md#quickstart). It requires Node.js
-20 or later and an existing, authorized Schift Search index. The package does not upload, parse,
-or index documents, and it does not generate the final answer.
+Requires Node.js 20 or later and a new destination directory. Expect `result.status: "ready"`
+with a passage about the synthetic handbook's 14-day refund window and its source line range.
+Keep the returned `installationId` to ask again:
+
+```bash
+npx --no-install schift-ks query '<installation-id>' --query '배송 기간'
+node node_modules/@schift-io/knowledge-scope/examples/consumer.mjs \
+  '<installation-id>' local-tenant '환불 규정' search
+```
+
+Next, replace `--source` with your own UTF-8 `.md` or `.txt` file or folder and choose a new project
+directory. The [quickstart](packages/knowledge-scope-cli/README.md#quickstart) explains snapshot
+refresh, privacy, limits, and recovery. Search is lexical, not semantic: a matching passage is not
+proof of a correct answer. Source text stays in private local state outside the portable Pack.
+There is no automatic sync, PDF/URL ingestion, or bundled MCP adapter.
 
 ## Guides
 
@@ -38,7 +52,7 @@ snapshot across providers. Each evidence item retains its own citation, revision
 See [the batch request and CLI example](packages/knowledge-scope-cli/README.md#manual-authoring)
 and [the document-plus-records pilot](packages/knowledge-scope-cli/docs/PILOT.md#extend-to-documents-plus-live-records).
 
-The TypeScript SDK and Node.js CLI include Schift Search and Open Connector adapters plus an
+The TypeScript SDK and Node.js CLI include local-document, Schift Search, and Open Connector adapters plus an
 injected named-records execution port. Open Connector is a separately operated runtime; its
 implementation is not included in this repository. A configured endpoint and authorized account
 are required to use that adapter.
@@ -73,17 +87,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for change and verification expectations.
 
 ## Release source mapping
 
-The published npm release is [`@schift-io/knowledge-scope@0.1.0`](https://www.npmjs.com/package/@schift-io/knowledge-scope/v/0.1.0).
-Its archive SHA-256 is:
-
-```text
-e2530b680a78efc36c519f6f13828442a79a68f24c959220903b0c8cda6089ea
-```
-
-This public repository starts from the release implementation at source commit `2c6276f5e`.
+This checkout targets [`@schift-io/knowledge-scope@0.2.0`](https://www.npmjs.com/package/@schift-io/knowledge-scope/v/0.2.0)
+and incorporates the release implementation from source snapshot `318c81726`.
 Its workspace packaging and documentation were adapted for a standalone checkout. A GitHub source
-archive is therefore not byte-identical to the published npm archive. Use the npm artifact and
-checksum above when reproducing the published binary package.
+archive is therefore not byte-identical to the npm archive. Use the package archive and
+`SHA256SUMS` attached to the matching [GitHub release](https://github.com/schift-io/knowledge-scope/releases)
+when reproducing a published binary package.
 
 ## License
 
