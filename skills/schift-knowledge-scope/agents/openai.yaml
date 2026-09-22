@@ -1,0 +1,4 @@
+interface:
+  display_name: "Schift Knowledge Scope"
+  short_description: "Connect project notes and retrieve cited evidence"
+  default_prompt: "Use $schift-knowledge-scope to connect my selected project notes and answer a question with cited evidence."
