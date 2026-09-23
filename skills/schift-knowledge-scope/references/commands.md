@@ -12,6 +12,8 @@ Below, `RUNNER` means that whole prefix without `--help`; it is notation, not an
 
 Read help for capabilities. npm **0.2.0 has `quickstart`/`query`, not `connect`/`ask`/`refresh`**. The latter are unreleased source-checkout additions. Never call them just because this skill describes them. Keep the same runner and `SCHIFT_KS_HOME` across calls; default state is `~/.schift/knowledge-scope`.
 
+Use Node.js 22 or 24 for the `0.3.0` candidate. Its operating boundary is one local OS user, local disk and one network namespace on macOS/Linux. Do not share its state over NFS, between containers/network namespaces or with older writers; do not treat Windows as verified. Local loopback binding must be permitted. This guard is not a data service and does not provide a protocol for reading sources.
+
 ## If the selected build advertises connect, ask, refresh
 
 Choose `.schift-ks` under the selected working directory by default, outside the source directory. Do not repurpose an existing project for different material. Read only the selected project's metadata; never discover projects by scanning.
@@ -65,6 +67,14 @@ On `insufficient_evidence`, explain missing support and withhold the claim. Acce
 Local limits: 100 files, 1 MiB/file, 8 MiB total text, 4,000 chunks, 2,000 characters/line; traversal stops at 2,000 entries or 16 levels. Hidden entries, `node_modules` and unsupported folder extensions are skipped. Symlinks, hardlinks, special and unstable files are rejected. Explain relevant limits only when blocking; never silently truncate or broaden sources.
 
 ## Only when requested: diagnose, disconnect, use hosted sources
+
+After a candidate-version process interruption, retry the intended operation once. Its operating-system guard is released when the process dies; `.project.lock` and `state.lock` **directories** are permanent protective markers, not stale locks to delete. If the error persists or an old regular-file lock is reported, stop mutations and report the exact error without exposing private data. Never remove markers, guess that a PID is dead, run older writers against the same state, or broaden filesystem permissions. Use the [operations guide](https://github.com/schift-io/knowledge-scope/blob/main/packages/knowledge-scope-cli/docs/OPERATIONS.md) for explicit recovery, retention or backup work; verify that the selected runner actually supports each command before running it.
+
+An ordinary question, refresh or conversation closure does not authorize pruning. If the user explicitly asks to remove obsolete snapshots, show the selected project's cleanup preview first, explain irreversible deletion, and apply only the reviewed plan. Do not delete original sources, the current snapshot or another project's material. Cleanup is not secure erasure. No automatic cleanup, unattended version upgrade or broader source scan is part of this skill.
+
+For a selected candidate runner that advertises these commands, preview with `RUNNER prune --project '<bound-project>' --keep 2 --json`; apply only the reviewed response's `plan` using the same arguments plus `--apply --plan '<digest>'`. If interrupted or the plan changes, request a fresh preview. Do not infer cleanup authorization from the availability of a command.
+
+Legacy lock recovery is a distinct operator task: `RUNNER recover --project '<selected-project>' --json` previews; applying the reviewed `plan` additionally needs `--apply --plan '<digest>' --quiesced`. Never supply `--quiesced` without establishing that all state/project writers, including old CLI/SDK processes, have stopped. It is not a process-stop command. Recovery quarantines regular-file legacy locks rather than deleting them; it is not permission to remove new directory markers.
 
 ```bash
 RUNNER doctor '<installation-id>'

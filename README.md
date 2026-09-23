@@ -18,13 +18,15 @@ Or: “`$schift-knowledge-scope`로 `./my-documents` 연결해서 환불 규정�
 
 The agent handles the command runner, connection IDs and evidence checks. Continue with “What about delivery?” in the same conversation. Ask to refresh when your files change. In a new conversation, select your material or existing project again.
 
-Needs **Node.js 20+**, a skill-capable assistant, and local command execution. The runner may download a pinned npm package into its cache; no global install or application dependency change is needed. Local inputs are **Markdown/text files**, with **keyword search**, not semantic search or PDF/Office/URL ingestion.
+Use **Node.js 22 or 24**, a skill-capable assistant, and local command execution. The runner may download a pinned npm package into its cache; no global install or application dependency change is needed. Local inputs are **Markdown/text files**, with **keyword search**, not semantic search or PDF/Office/URL ingestion.
 
 Selected text is copied into private local storage. Retrieved passages enter your assistant's context and its data policy applies. Ending a conversation does not delete snapshots; session selection is an assistant workflow, not runtime isolation.
 
 [한국어 사용 가이드](packages/knowledge-scope-cli/docs/USAGE.md) · [Skill instructions](skills/schift-knowledge-scope/SKILL.md)
 
 **Release boundary:** published npm is `0.2.0`. The skill supports that version through agent-managed legacy commands. Simpler `connect`/`ask`/`refresh` commands are unreleased source-checkout additions, not available from npm yet. See [local-build usage](packages/knowledge-scope-cli/docs/USAGE.md#개발-중인-간단한-cli-직접-확인하기).
+
+For ongoing local operation, see the [candidate operations guide](packages/knowledge-scope-cli/docs/OPERATIONS.md): crash recovery, backup/restore, explicit retention cleanup and the supported single-user local-disk boundary. Its `0.3.0` procedures do not apply to npm `0.2.0`; test results are not a blanket production certification.
 
 ## Integrate KS directly
 

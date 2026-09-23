@@ -226,6 +226,48 @@ This track does not add semantic search, PDF parsing, session ACLs, automatic
 sync, or model generation. Public npm remains `0.2.0`; new command availability
 must be checked against the selected binary until a separately approved release.
 
+## Local production hardening — candidate verified locally
+
+Release scope: single-user local Markdown/text retrieval on local macOS/Linux
+filesystems with supported Node LTS majors. This does not certify distributed
+filesystems, shared storage across network namespaces, Windows, or enforced
+session/tenant isolation. Customer answer generation remains external.
+
+Plan (tests first, no publication implied):
+
+- [x] Replace persistent-file lock ownership in both project and runtime state
+      with a kill-released local guard; preserve fail-closed legacy-lock handling.
+- [x] Fsync project/snapshot parent directories and verify injected write/sync
+      failures and killed-writer restart behavior.
+- [x] Add preview/plan-bound explicit pruning of obsolete project revisions,
+      raw snapshots and runtime records; protect active and shared references.
+- [x] Define the supported OS/Node contract and configure the same CI matrix.
+- [x] Verify exact-candidate install and upgrade from published `0.2.0` without
+      breaking existing installations or source material.
+- [x] Update the session skill and operator guidance for recovery, storage,
+      backup/restore, downgrade boundaries and unsupported environments.
+- [x] Run independent review, fault/kill/concurrency tests, real installed CLI
+      paths and supported runtime checks; distinguish configured CI from run CI.
+- [ ] Obtain separate public-push/npm authority and then verify remote release
+      acceptance. Real customer activation remains the external gate below.
+
+Candidate `0.3.0` package SHA-256:
+`7f3938872e60b08dffe6d9c6b8220163a74d563c765b85411750dbf20f67a148`.
+The isolated verifier built and installed this exact tarball: 333 CLI/SDK tests,
+63 Context Pack contract tests, strict typecheck, zero reported production
+dependency vulnerabilities, legacy `0.2.0` upgrade, maintenance, and actual
+Node SIGKILL recovery all passed. The same tarball passed installed checks on
+macOS arm64 Node 22.22.1 and 24.21.0, Linux arm64 Node 22.23.2 and 24.21.0.
+These four local checks do not substitute for a remote GitHub Actions run.
+
+An interrupted candidate writer releases its local guard. Legacy file locks
+require explicit reviewed recovery and confirmation that old writers stopped.
+Retention cleanup requires an exact preview plan and explicit apply; it protects
+the active installation, shared references and original source files. Unknown
+old orphan directories and unverified temporary files remain fail-closed for
+operator review. Backups and prior assistant conversation copies are not erased.
+The candidate has not been published or tested with independent customers.
+
 ## External validation — open
 
 Use the [support-context pilot guide](../knowledge-scope-cli/docs/PILOT.md) to run customer trials.

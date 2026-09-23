@@ -19,9 +19,11 @@ Select `schift-knowledge-scope` in that assistant and ask:
 
 The agent handles the CLI runner, connection IDs and evidence checks. Continue with “What about delivery?” in the same conversation. Ask to refresh when the source changes; select the material again in a new conversation. Generic file questions do not guarantee automatic skill invocation.
 
-Needs Node.js 20+ and local command execution. The runner may download a pinned npm package into its cache; it does not need a global install or application dependency change. Local `.md`/`.txt` retrieval uses keyword search and stores a private snapshot. Retrieved passages enter your assistant's context and its data policy applies. Ending the conversation does not erase stored text.
+Use Node.js 22 or 24 and local command execution. The runner may download a pinned npm package into its cache; it does not need a global install or application dependency change. Local `.md`/`.txt` retrieval uses keyword search and stores a private snapshot. Retrieved passages enter your assistant's context and its data policy applies. Ending the conversation does not erase stored text.
 
 **Release boundary:** npm remains `0.2.0`. The skill can use its legacy commands without asking you to manage IDs. The source checkout adds unreleased `connect`, `ask`, and `refresh` commands; do not assume they exist in the published package. See the [local-build instructions](docs/USAGE.md#개발-중인-간단한-cli-직접-확인하기).
+
+For repeated or unattended local use, follow the [operations guide](docs/OPERATIONS.md): supported deployment boundary, crash recovery, backup/restore and explicit retention cleanup. Its `0.3.0` candidate procedures do not apply to the older npm package. Passing software tests is not a certification of retrieval accuracy, customer acceptance or hardware power-loss durability.
 
 ## CLI and SDK integration
 
@@ -435,12 +437,10 @@ rejected instead of producing different TypeScript/Python digests.
 
 - `SCHIFT_KS_HOME` defaults to `~/.schift/knowledge-scope`.
 - Directories are mode `0700`; state and the separate 32-byte authorization key are mode `0600`.
-- State uses same-directory temp files, fsync, atomic rename, and an exclusive process lock.
+- The `0.3.0` candidate uses synced temporary files, atomic rename and parent-directory sync for durable publication, with exclusive process guards on local loopback sockets.
 - State is capped at 16 MiB and is parsed with the same byte/depth/node ceilings before and after
   every atomic write, so a successful mount cannot make the next read invalid.
-- Lock recovery is intentionally fail-closed. If a process crashes while holding `state.lock`, the
-  owner must verify the recorded PID is gone before manually removing that lock file; the product
-  never auto-deletes a possibly live writer's lock.
+- New lock-directory sentinels remain after exit; the operating system releases their process guard after a crash. Do not remove the sentinels. Legacy regular-file locks fail closed: a recorded PID alone does not establish safe ownership or justify deleting a lock. Follow the [recovery procedure](docs/OPERATIONS.md#recover-after-interruption).
 - Unmount preserves a tombstone, removes active bindings, and increments mount revision.
 - Replacing the authorization key intentionally invalidates outstanding Candidates.
 - Provider output cannot set installation, authority, Scope, Pack digest, permission mode, or the
