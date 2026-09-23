@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "bun:test";
 import { chmod, mkdtemp, rm, symlink, truncate, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
 
 import { KnowledgeScopeStateStore, MAX_STATE_BYTES } from "../src/state-store.js";
 
@@ -19,6 +20,18 @@ afterEach(async () => {
 });
 
 describe("KnowledgeScopeStateStore", () => {
+  it("rejects a FIFO state file without waiting for a writer", async () => {
+    // Given
+    const home = await createHome();
+    expect(spawnSync("mkfifo", ["-m", "600", join(home, "state.json")]).status).toBe(0);
+    const module = new URL("../src/state-store.ts", import.meta.url).href;
+    // When: an external timeout prevents a broken implementation from hanging the suite.
+    const child = spawnSync(process.execPath, ["--eval", `import { KnowledgeScopeStateStore } from ${JSON.stringify(module)}; try { await new KnowledgeScopeStateStore({ home: ${JSON.stringify(home)} }).read(); process.exitCode = 1; } catch(error) { console.log(error.code); }`], { timeout: 2000, encoding: "utf8" });
+    // Then
+    expect(child.error).toBeUndefined();
+    expect(child.status).toBe(0);
+    expect(child.stdout.trim()).toBe("state_permissions_invalid");
+  });
   it("keeps the previous state readable when atomic replacement fails", async () => {
     // Given
     const home = await createHome();

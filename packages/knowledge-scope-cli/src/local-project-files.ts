@@ -1,7 +1,8 @@
 import { constants } from "node:fs";
-import { lstat, mkdir, open, readdir, realpath, rename, unlink } from "node:fs/promises";
+import { lstat, mkdir, open, readdir, realpath } from "node:fs/promises";
 import { basename, dirname, join, resolve, sep } from "node:path";
-import { randomUUID } from "node:crypto";
+import { writeDurableFile } from "./durable-file.js";
+import { LocalLockError, withLocalLock } from "./local-lock.js";
 import { z } from "zod";
 import { KnowledgeScopeMountSchema } from "@schift-io/context-pack";
 import { canonicalJson, parseJsonText } from "./json.js";
@@ -80,24 +81,19 @@ export const readProject = async (directory: string): Promise<LocalProject | und
 };
 
 export const writeProject = async (directory: string, project: LocalProject): Promise<void> => {
-  const temporary = join(directory, `.project-${randomUUID()}.tmp`);
-  const handle = await open(temporary, "wx", 0o600);
-  try { await handle.writeFile(`${canonicalJson(project)}\n`); await handle.sync(); }
-  finally { await handle.close(); }
-  await rename(temporary, join(directory, "project.json"));
+  await writeDurableFile(join(directory, "project.json"), `${canonicalJson(project)}\n`);
 };
 
 export const withProjectLock = async <T>(directory: string, action: () => Promise<T>): Promise<T> => {
-  const path = join(directory, ".project.lock");
-  let handle;
-  try { handle = await open(path, "wx", 0o600); }
-  catch (error) { if (fileError(error, "EEXIST")) throw new OnboardingError("project_busy", { nextAction: "Another connection or refresh is in progress. Retry when it finishes. An interrupted lock requires manual review." }); throw error; }
-  const owned = await handle.stat();
-  try { return await action(); }
-  finally {
-    await handle.close();
-    const current = await lstat(path);
-    if (current.dev === owned.dev && current.ino === owned.ino && current.nlink === 1) await unlink(path);
-    else throw new OnboardingError("project_invalid");
+  try { return await withLocalLock(join(directory, ".project.lock"), action); }
+  catch (error) {
+    if (error instanceof LocalLockError) {
+      switch (error.code) {
+        case "busy": throw new OnboardingError("project_busy");
+        case "invalid": throw new OnboardingError("project_invalid");
+        case "unavailable": throw new OnboardingError("local_lock_unavailable", { nextAction: "Allow local loopback sockets for exclusive writes. No data is served on the socket." });
+      }
+    }
+    throw error;
   }
 };

@@ -11,6 +11,7 @@ import { KnowledgeScopeAuthorization } from "../src/authorization.js";
 import { LocalDocumentStore } from "../src/local-documents/index.js";
 import { parseJsonText } from "../src/json.js";
 import { spawnSync } from "node:child_process";
+import { withProjectLock } from "../src/local-project-files.js";
 
 const setup = async () => {
   const root = await mkdtemp(join(tmpdir(), "ks-project-safety-")); const source = join(root, "notes.md");
@@ -69,10 +70,12 @@ for (const kind of ["symlink", "hardlink"] as const) {
 
 it("rejects a competing refresh while retaining its active lock", async () => {
   // Given
-  const fixture = await setup(); await writeFile(join(fixture.directory, ".project.lock"), "pending", { mode: 0o600 });
+  const fixture = await setup();
   // When / Then
-  await expect(refreshLocalProject(fixture, fixture.dependencies)).rejects.toThrow("project_busy");
-  expect(await readFile(join(fixture.directory, ".project.lock"), "utf8")).toBe("pending");
+  await withProjectLock(fixture.directory, async () => {
+    await expect(refreshLocalProject(fixture, fixture.dependencies)).rejects.toThrow("project_busy");
+    await expect(refreshLocalProject(fixture, fixture.dependencies)).rejects.toThrow("project_busy");
+  });
 });
 
 it("withholds expired evidence and tells the caller to refresh", async () => {

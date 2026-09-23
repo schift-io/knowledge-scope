@@ -1,11 +1,13 @@
 import { constants } from "node:fs";
-import { chmod, link, lstat, mkdir, open, rename, rm } from "node:fs/promises";
+import { chmod, link, lstat, mkdir, open, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { KnowledgeScopeProductError, productError } from "./errors.js";
-import { DEFAULT_MAX_JSON_BYTES, canonicalJson, decodeUtf8Strict, parseJsonText } from "./json.js";
+import { canonicalJson, decodeUtf8Strict, parseJsonText } from "./json.js";
+import { LocalLockError, withLocalLock } from "./local-lock.js";
+import { writeDurableFile } from "./durable-file.js";
 import {
   EMPTY_KNOWLEDGE_SCOPE_STATE,
   KnowledgeScopeStateSchema,
@@ -24,7 +26,6 @@ export type KnowledgeScopeStateStoreOptions = Readonly<{
   faults?: StateStoreFaults;
 }>;
 
-type LockOwner = Readonly<{ pid: number; createdAt: number; nonce: string }>;
 export const MAX_STATE_BYTES = 16 * 1_024 * 1_024;
 export const MAX_STATE_DEPTH = 48;
 export const MAX_STATE_NODES = 250_000;
@@ -59,6 +60,7 @@ const hasCode = (value: unknown, code: string): boolean => {
 const assertOwnerOnly = async (path: string, expectedDirectory: boolean): Promise<void> => {
   const metadata = await lstat(path);
   if (metadata.isSymbolicLink() || (metadata.mode & 0o077) !== 0 ||
+    (process.getuid !== undefined && metadata.uid !== process.getuid()) ||
     (expectedDirectory ? !metadata.isDirectory() : !metadata.isFile())) {
     throw productError("state_permissions_invalid");
   }
@@ -68,7 +70,7 @@ const noFollowReadFlags = (): number => {
   if (typeof constants.O_NOFOLLOW !== "number" || constants.O_NOFOLLOW === 0) {
     throw productError("state_permissions_invalid");
   }
-  return constants.O_RDONLY | constants.O_NOFOLLOW;
+  return constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK;
 };
 
 const readOwnerOnlyFile = async (path: string, maxBytes: number): Promise<string> => {
@@ -81,7 +83,8 @@ const readOwnerOnlyFile = async (path: string, maxBytes: number): Promise<string
   }
   try {
     const metadata = await handle.stat();
-    if (!metadata.isFile() || (metadata.mode & 0o077) !== 0) {
+    if (!metadata.isFile() || (metadata.mode & 0o077) !== 0 ||
+      (process.getuid !== undefined && metadata.uid !== process.getuid())) {
       throw productError("state_permissions_invalid");
     }
     if (metadata.size > maxBytes) throw productError("json_limits_exceeded");
@@ -173,66 +176,30 @@ export class KnowledgeScopeStateStore {
   }
 
   public async transact<T>(update: (state: KnowledgeScopeState) => StateMutation<T>): Promise<T> {
-    await this.initialize();
-    const lockHandle = await this.acquireLock();
-    try {
-      const current = await this.read();
+    return this.withMaintenance(async (current, persist) => {
       const mutation = update(current);
-      await this.writeAtomically(mutation.state);
+      await persist(mutation.state);
       return mutation.value;
-    } finally {
-      await lockHandle.close();
-      await rm(this.lockPath, { force: true });
-    }
+    });
   }
 
-  private async acquireLock(): Promise<Awaited<ReturnType<typeof open>>> {
-    let handle;
+  public async withMaintenance<T>(action: (state: KnowledgeScopeState, persist: (next: KnowledgeScopeState) => Promise<void>) => Promise<T>): Promise<T> {
+    await this.initialize();
     try {
-      handle = await open(this.lockPath, "wx", 0o600);
+      return await withLocalLock(this.lockPath, async () => action(await this.read(), (next) => this.writeAtomically(next)));
     } catch (error) {
-      if (!hasCode(error, "EEXIST")) throw error;
-      try {
-        await readOwnerOnlyFile(this.lockPath, DEFAULT_MAX_JSON_BYTES);
-      } catch (lockError) {
-        if (lockError instanceof KnowledgeScopeProductError && lockError.code === "json_limits_exceeded") {
-          throw productError("lock_conflict");
+      if (error instanceof LocalLockError) {
+        switch (error.code) {
+          case "busy": throw productError("lock_conflict");
+          case "invalid": throw productError("state_permissions_invalid");
+          case "unavailable": throw error;
         }
-        if (!hasCode(lockError, "ENOENT")) throw lockError;
       }
-      throw productError("lock_conflict");
-    }
-    try {
-      const owner: LockOwner = { pid: process.pid, createdAt: Date.now(), nonce: randomUUID() };
-      await handle.writeFile(`${canonicalJson(owner)}\n`, "utf8");
-      await handle.sync();
-      return handle;
-    } catch (error) {
-      await handle.close();
-      await rm(this.lockPath, { force: true });
       throw error;
     }
   }
 
   private async writeAtomically(state: KnowledgeScopeState): Promise<void> {
-    const serialized = serializeState(state);
-    const temporaryPath = join(dirname(this.statePath), `.state-${process.pid}-${randomUUID()}.tmp`);
-    const handle = await open(temporaryPath, "wx", 0o600);
-    try {
-      await handle.writeFile(serialized, "utf8");
-      await handle.sync();
-      if (this.faults !== undefined) await this.faults.beforeRename();
-      await rename(temporaryPath, this.statePath);
-      const directory = await open(this.home, "r");
-      try {
-        await directory.sync();
-      } finally {
-        await directory.close();
-      }
-      await chmod(this.statePath, 0o600);
-    } finally {
-      await handle.close();
-      await rm(temporaryPath, { force: true });
-    }
+    await writeDurableFile(this.statePath, serializeState(state), this.faults);
   }
 }

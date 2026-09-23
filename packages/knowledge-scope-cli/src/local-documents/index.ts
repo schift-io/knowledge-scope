@@ -10,6 +10,7 @@ import type { KnowledgeScopeStateStoreOptions } from "../state-store.js";
 import { canonicalJson, parseJsonText } from "../json.js";
 import { LocalDocumentError, LOCAL_LIMITS, readBounded, mapLocalFileError } from "./files.js";
 import { buildSnapshot, chunksFor, digest, lexicalTerms, snapshotId, SnapshotSchema, type Snapshot } from "./snapshot.js";
+import { DurableWriteError, syncDirectory } from "../durable-file.js";
 export { LocalDocumentError, LOCAL_LIMITS } from "./files.js";
 
 const QuerySchema = z.object({ query: z.string().min(1).max(8192) }).strict();
@@ -31,9 +32,11 @@ export class LocalDocumentStore {
       await assertPrivateDirectory(this.home);
       const directory = join(this.home, "local-documents");
       await assertPrivateDirectory(directory); return directory;
-    } catch (error) { return mapLocalFileError(error, true); }
+    } catch (error) { // no-excuse-ok: catch -- mapper narrows filesystem errors and rethrows every unknown error.
+      return mapLocalFileError(error, true);
+    }
   }
-  public async ingest(sourcePath: string): Promise<Readonly<{ indexRef: string; documentCount: number; chunkCount: number }>> {
+  public async ingest(sourcePath: string, options?: Readonly<{beforePublish:(indexRef:string)=>Promise<void>}>): Promise<Readonly<{ indexRef: string; documentCount: number; chunkCount: number }>> {
     const snapshot = await buildSnapshot(sourcePath);
     const chunks = chunksFor(snapshot);
     if (chunks.length === 0) throw new LocalDocumentError("local_source_invalid");
@@ -41,11 +44,14 @@ export class LocalDocumentStore {
     const temporary = join(directory, `.ingest-${randomUUID()}`);
     const serialized = canonicalJson(snapshot);
     if (Buffer.byteLength(serialized) > LOCAL_LIMITS.snapshotBytes) throw new LocalDocumentError("local_limit_exceeded");
+    await options?.beforePublish(indexRef);
     const handle = await open(temporary, "wx", 0o600);
     try {
       await handle.writeFile(serialized, "utf8"); await handle.sync();
       try { await link(temporary, join(directory, `${indexRef.slice(6)}.json`)); }
       catch (error) { if (!(error instanceof Error && "code" in error && error.code === "EEXIST")) throw error; }
+      try { await syncDirectory(directory); }
+      catch (error) { throw new DurableWriteError(error); }
     } finally { await handle.close(); await rm(temporary, { force: true }); }
     return { indexRef, documentCount: snapshot.documents.length, chunkCount: chunks.length };
   }
