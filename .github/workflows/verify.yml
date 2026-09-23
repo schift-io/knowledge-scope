@@ -19,8 +19,6 @@ jobs:
         node: [22, 24]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
-    env:
-      TMPDIR: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,6 +35,8 @@ jobs:
       - name: Record actual candidate runtime
         run: node -e 'console.log(JSON.stringify({node:process.version,platform:process.platform,architecture:process.arch}))'
       - run: npm run verify
+        env:
+          TMPDIR: ${{ runner.temp }}
       - uses: actions/upload-artifact@v4
         with:
           name: verified-npm-artifact-${{ matrix.os }}-node-${{ matrix.node }}
