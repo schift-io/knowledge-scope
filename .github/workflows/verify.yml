@@ -11,13 +11,21 @@ permissions:
 
 jobs:
   typescript:
-    runs-on: ubuntu-latest
+    name: TypeScript / ${{ matrix.os }} / Node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    env:
+      TMPDIR: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.22.1
+          node-version: ${{ matrix.node }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
@@ -26,11 +34,13 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npm test
+      - name: Record actual candidate runtime
+        run: node -e 'console.log(JSON.stringify({node:process.version,platform:process.platform,architecture:process.arch}))'
       - run: npm run verify
       - uses: actions/upload-artifact@v4
         with:
-          name: verified-npm-artifact
-          path: /tmp/schift-ks-release-*/artifacts/*
+          name: verified-npm-artifact-${{ matrix.os }}-node-${{ matrix.node }}
+          path: ${{ runner.temp }}/schift-ks-release-*/artifacts/*
           if-no-files-found: error
   python:
     runs-on: ubuntu-latest

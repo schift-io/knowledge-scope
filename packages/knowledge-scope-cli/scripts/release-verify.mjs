@@ -12,6 +12,10 @@ const packages = join(workspace, "source", "packages");
 const isolated = join(packages, "knowledge-scope-cli");
 const output = join(workspace, "artifacts");
 const consumer = join(workspace, "consumer");
+const runtime = { node: process.version, platform: process.platform, architecture: process.arch };
+if (![22, 24].includes(Number(process.versions.node.split(".")[0]))) {
+  throw new Error(`Release verification requires supported Node 22 or 24; observed ${process.version}`);
+}
 // Provider credentials and caller NODE_PATH never enter build/tests or installed probes.
 const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   ["PATH", "HOME", "TMPDIR", "TEMP", "TMP", "SystemRoot"].includes(key)));
@@ -65,6 +69,10 @@ for (const name of ["valid-definition", "valid-mount", "admission-accepted", "sc
 await cp(join(source, "package.json"), join(packages, "package.json"));
 await cp(join(source, "package-lock.json"), join(packages, "package-lock.json"));
 run(["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"], packages);
+const dependencyAudit = JSON.parse(run(["npm", "audit", "--omit=dev", "--workspaces=false", "--json"], packages, true));
+if (dependencyAudit.metadata?.vulnerabilities?.total !== 0) {
+  throw new Error("Production dependency audit did not report zero vulnerabilities");
+}
 run(["bun", "run", "build"], isolated);
 run(["bun", "run", "typecheck"], isolated);
 run(["bun", "test"], isolated);
@@ -85,11 +93,18 @@ await writeFile(join(output, "SHA256SUMS"), `${sha256}  ${artifact.filename}\n`)
 await writeFile(join(consumer, "package.json"), JSON.stringify({ private: true, type: "module" }));
 run(["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact", tarball], consumer);
 await cp(join(isolated, "scripts", "release-smoke.mjs"), join(consumer, "smoke.mjs"));
-run(["node", "smoke.mjs"], consumer);
+run([process.execPath, "smoke.mjs"], consumer);
 await cp(join(isolated, "scripts", "release-local-smoke.mjs"), join(consumer, "local-smoke.mjs"));
-run(["node", "local-smoke.mjs"], consumer);
+run([process.execPath, "local-smoke.mjs"], consumer);
 await cp(join(isolated, "scripts", "release-easy-smoke.mjs"), join(consumer, "easy-smoke.mjs"));
-run(["node", "easy-smoke.mjs"], consumer);
+run([process.execPath, "easy-smoke.mjs"], consumer);
+await cp(join(isolated, "scripts", "release-maintenance-smoke.mjs"), join(consumer, "maintenance-smoke.mjs"));
+run([process.execPath, "maintenance-smoke.mjs"], consumer);
+await cp(join(isolated, "scripts", "release-crash-smoke.mjs"), join(consumer, "crash-smoke.mjs"));
+run([process.execPath, "crash-smoke.mjs"], consumer);
+await cp(join(isolated, "scripts", "release-upgrade-smoke.mjs"), join(consumer, "upgrade-smoke.mjs"));
+const candidateManifest = JSON.parse(await readFile(join(isolated, "package.json"), "utf8"));
+const upgradeSmoke = JSON.parse(run([process.execPath, "upgrade-smoke.mjs", tarball, candidateManifest.version], consumer, true));
 await writeFile(join(consumer, "consumer.mts"), `
 import { createCliDependencies, createKnowledgeScopeClient } from "@schift-io/knowledge-scope";
 import { InstallationIdSchema, CapabilityBatchExecutionRequestSchema } from "@schift-io/knowledge-scope/context-pack";
@@ -101,7 +116,9 @@ void client.runBatch(CapabilityBatchExecutionRequestSchema.parse({
   operations: [{ operationId: "search-handbook", input: { query: "evidence" } }],
 }));
 `);
-run(["node", join(packages, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "consumer.mts"], consumer);
-const report = { status: "verified", artifact: tarball, sha256, files: inventory, installedSmoke: "passed", localFirstUseSmoke: "passed", easyProjectSmoke: "passed", isolatedSource: isolated };
+run([process.execPath, join(packages, "node_modules/typescript/bin/tsc"), "--noEmit", "--strict", "--skipLibCheck", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "consumer.mts"], consumer);
+const report = { status: "verified", runtime, artifact: tarball, sha256, files: inventory,
+  dependencyAudit: dependencyAudit.metadata, installedSmoke: "passed", localFirstUseSmoke: "passed",
+  easyProjectSmoke: "passed", maintenanceSmoke: "passed", crashRecoverySmoke: "passed", upgradeSmoke, isolatedSource: isolated };
 await writeFile(join(output, "release-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

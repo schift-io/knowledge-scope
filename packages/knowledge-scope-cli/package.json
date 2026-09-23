@@ -1,6 +1,6 @@
 {
   "name": "@schift-io/knowledge-scope",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Portable Knowledge Scope authoring and local control plane.",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,8 +44,9 @@
     "@types/node": "22.19.17"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.0.0 || ^24.0.0"
   },
+  "os": ["darwin", "linux"],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
