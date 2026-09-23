@@ -248,22 +248,22 @@ Plan (tests first, no publication implied):
       backup/restore, downgrade boundaries and unsupported environments.
 - [x] Run independent review, fault/kill/concurrency tests, real installed CLI
       paths and supported runtime checks; distinguish configured CI from run CI.
-- [x] Push the public source to [GitHub `main`](https://github.com/schift-io/knowledge-scope/commit/f21bd93b488e040339819496a2d8ce69449f0cfd)
-      and verify [remote CI](https://github.com/schift-io/knowledge-scope/actions/runs/35819455064):
+- [x] Push the public source to [GitHub `main`](https://github.com/schift-io/knowledge-scope/commit/48f74acc89deaf703ed99a070c5653cbdddd755e)
+      and verify [remote CI](https://github.com/schift-io/knowledge-scope/actions/runs/35820172748):
       Python plus macOS/Ubuntu Node 22/24 all succeeded.
 - [ ] Publish npm `@schift-io/knowledge-scope@0.3.0` only with separate approval.
       Real customer activation remains the external gate below.
 
 Candidate `0.3.0` package SHA-256:
-`7f3938872e60b08dffe6d9c6b8220163a74d563c765b85411750dbf20f67a148`.
+`a49827e9b6ffa3603d71bd1cad50bb6c7f73b19eab5f8e481bcbcbaa1ca36132`.
 The isolated verifier built and installed this exact tarball: 333 CLI/SDK tests,
 63 Context Pack contract tests, strict typecheck, zero reported production
 dependency vulnerabilities, legacy `0.2.0` upgrade, maintenance, and actual
 Node SIGKILL recovery all passed. The same tarball passed installed checks on
-macOS arm64 Node 22.22.1 and 24.21.0, Linux arm64 and x64 Node 22.23.2
-and 24.21.0. The Linux x64 checks ran in emulated local containers.
-These six local checks are complemented by the successful remote GitHub Actions
-run above; independent customer validation is still open.
+macOS arm64 Node 22.22.1 and Linux x64 Node 22.23.2; Linux x64 ran in an
+emulated local container. The remote GitHub Actions run above checked the
+updated source on macOS and Ubuntu with Node 22 and 24. Independent customer
+validation is still open.
 
 An interrupted candidate writer releases its local guard. Legacy file locks
 require explicit reviewed recovery and confirmation that old writers stopped.
