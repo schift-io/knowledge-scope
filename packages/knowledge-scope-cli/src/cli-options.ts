@@ -7,6 +7,8 @@ const specifications: Readonly<Record<string, Readonly<{ count: number; values: 
   connect: { count: 1, values: ["--project"], flags: ["--json"] },
   ask: { count: 1, values: ["--project"], flags: ["--json"] },
   refresh: { count: 0, values: ["--project"], flags: ["--json"] },
+  prune: { count: 0, values: ["--project", "--keep", "--plan"], flags: ["--json", "--apply"] },
+  recover: { count: 0, values: ["--project", "--plan"], flags: ["--json", "--apply", "--quiesced"] },
   help: { count: 0, values: [], flags: ["--json"] },
   init: { count: 1, values: [] }, validate: { count: 1, values: [] }, lock: { count: 1, values: [] },
   mount: { count: 1, values: ["--bindings", "--api-url"] },
@@ -42,5 +44,7 @@ export const parseCliOptions = (command: string, args: readonly string[]): reado
   if (positional.length > spec.count) throw new CliUsageError("argument_invalid");
   if (command === "doctor" && seen.has("--probe") !== seen.has("--query")) throw new CliUsageError("argument_invalid");
   if (command === "quickstart" && seen.has("--source") && seen.has("--index")) throw new CliUsageError("argument_invalid");
+  if ((command === "prune" || command === "recover") && seen.has("--apply") !== seen.has("--plan")) throw new CliUsageError("argument_invalid");
+  if (command === "recover" && seen.has("--apply") !== seen.has("--quiesced")) throw new CliUsageError("argument_invalid");
   return positional;
 };

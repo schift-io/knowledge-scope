@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { JsonValue } from "./json.js";
+import { displayMaintenance } from "./maintenance-display.js";
 
 export const FIRST_USE_HELP = `Find cited evidence in your documents.
 
@@ -58,6 +59,10 @@ export const displayResult = (value: JsonValue, directory: string): string => {
   const result = DisplaySchema.parse(value);
   const project = projectOption(directory);
   switch (result.status) {
+    case "preview":
+    case "pruned":
+    case "recovery_preview":
+    case "recovered": return displayMaintenance(value, project);
     case "connected":
     case "refreshed":
       return `${result.status === "connected" ? "Connected" : "Updated"}: ${terminalText(result.source ?? "selected documents")}\nLocal copies are retained on this computer; no upload or model calls.\nNext: schift-ks ask "Your question"${project}`;
@@ -80,9 +85,21 @@ export const displayResult = (value: JsonValue, directory: string): string => {
 export const displayError = (code: string, directory: string): string => {
   const project = projectOption(directory);
   switch (code) {
+    case "commit_uncertain": return "The write may have completed, but durability could not be confirmed.\nDo not delete or roll back stored files. Inspect the selected project\nand runtime state before retrying; see the operations guide.";
+    case "local_lock_unavailable": return "Local locking is unavailable. Use a supported local filesystem with\nloopback binding allowed; shared network filesystems are unsupported.";
+    case "prune_plan_changed": return "The cleanup plan changed. Nothing further was deleted.\nPreview again, review the new plan, then approve that exact plan.";
+    case "prune_partial": return "Cleanup was interrupted; some old copies may already be deleted.\nThe current project and original documents are retained.\nRun prune --json again to review and finish the remaining cleanup.";
+    case "prune_unsafe": return "Cleanup refused unexpected files or unverified ownership.\nReview the selected project; do not delete files manually to bypass checks.";
+    case "recover_quiescence_required": return "Stop all KS writers first. Recovery requires an exact preview plan\nand an explicit --quiesced assertion; age alone does not prove a lock is stale.";
+    case "recover_live_writer":
+    case "recover_busy": return "Another process may still be using this data. Stop the owning operation\nbefore recovery; do not force-unlock or remove its lock files.";
+    case "recover_plan_changed": return "The recovery plan changed. Preview it again after stopping all writers.";
+    case "recover_partial": return "Some old locks were moved aside before recovery stopped. Keep writers\nstopped and inspect --json details; do not restore or delete locks blindly.";
+    case "recover_unsafe": return "Recovery refused an unverified project or an unexpected lock file.\nNothing was changed. Use the operations guide to inspect the selected paths.";
     case "project_missing": return `No documents are connected here.\nNext: schift-ks connect ./my-documents${project}`;
     case "project_source_mismatch": return "This project already uses different documents. Keep it and connect the new\nsource with --project <another-directory>.";
-    case "project_busy": return "This connection is being updated. If that command was interrupted, verify\nno update is running before recovering its project lock; otherwise wait,\nthen retry.";
+    case "lock_conflict":
+    case "project_busy": return `This data is in use or has a legacy lock. Wait for active work to finish.\nFor an interrupted older version, preview: schift-ks recover${project}\nNever delete permanent lock directories.`;
     case "local_source_unsupported": return "Choose a local .md or .txt file, or a folder containing those files.";
     case "local_source_empty": return "No supported text was found.\nChoose a folder containing non-empty .md or .txt files.";
     case "local_source_invalid": return "The selected documents could not be read safely.\nCheck the path and file permissions, then retry.";

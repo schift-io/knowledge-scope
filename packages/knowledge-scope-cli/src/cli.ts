@@ -21,8 +21,13 @@ import { doctor } from "./doctor.js";
 import { OnboardingError, type OnboardingEnvironment } from "./onboarding-config.js";
 import { connectLocalProject, askLocalProject, refreshLocalProject } from "./local-project.js";
 import { displayError, displayResult, FIRST_USE_HELP } from "./cli-display.js";
+import type { KnowledgeScopeStateStore } from "./state-store.js";
+import { pruneLocalProject } from "./local-project-prune.js";
+import { recoverLocalProject } from "./local-project-recover.js";
+import { DurableWriteError } from "./durable-file.js";
+import { LocalLockError } from "./local-lock.js";
 
-const COMMANDS = ["connect", "ask", "refresh", "help", "init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "query", "doctor"] as const;
+const COMMANDS = ["connect", "ask", "refresh", "prune", "recover", "help", "init", "validate", "lock", "mount", "inspect", "run", "run-batch", "admit", "unmount", "serve", "quickstart", "query", "doctor"] as const;
 const HELP = {
   bin: "schift-ks", commands: COMMANDS,
   start: { example: "schift-ks quickstart ./my-project --source ./notes.md --query 'What is the refund policy?'", supported: [".md", ".txt", "directory"], accountRequired: false, behavior: "Imports a local snapshot; no upload or model calls." },
@@ -37,6 +42,7 @@ export type PortableAuthoringPort = Readonly<{
 }>;
 export type CliDependencies = Readonly<{
   environment?: OnboardingEnvironment;
+  localState?: KnowledgeScopeStateStore;
   localDocuments?: LocalDocumentImportPort;
   authoring: PortableAuthoringPort;
   embedded: KnowledgeScopeApplicationPort;
@@ -128,6 +134,8 @@ const execute = async (argv: readonly string[], dependencies: CliDependencies): 
     case "connect": return connectLocalProject({ directory: option(args, "--project") ?? ".schift-ks", source: positional[0] ?? "" }, dependencies);
     case "ask": return askLocalProject({ directory: option(args, "--project") ?? ".schift-ks", query: positional[0] ?? "" }, dependencies);
     case "refresh": return refreshLocalProject({ directory: option(args, "--project") ?? ".schift-ks" }, dependencies);
+    case "prune": return pruneLocalProject({ directory: option(args, "--project") ?? ".schift-ks", keep: integerOption(args, "--keep", 2), apply: args.includes("--apply"), ...(option(args, "--plan") === undefined ? {} : { plan: requiredOption(args, "--plan") }) }, dependencies);
+    case "recover": return recoverLocalProject({ directory: option(args, "--project") ?? ".schift-ks", apply: args.includes("--apply"), ...(args.includes("--quiesced") ? { quiesced: true } : {}), ...(option(args, "--plan") === undefined ? {} : { plan: requiredOption(args, "--plan") }) }, dependencies);
     case "quickstart": {
       const source = option(args, "--source");
       if (source !== undefined) return localQuickstart({ directory: positional[0] ?? "", source, tenant: option(args, "--tenant") ?? "local-tenant", query: requiredOption(args, "--query") }, dependencies);
@@ -188,6 +196,8 @@ const execute = async (argv: readonly string[], dependencies: CliDependencies): 
 };
 
 const errorCode = (error: unknown): string => {
+  if (error instanceof DurableWriteError) return error.code;
+  if (error instanceof LocalLockError) return error.code === "unavailable" ? "local_lock_unavailable" : "lock_conflict";
   if (error instanceof LocalDocumentError || error instanceof OnboardingError || error instanceof CliUsageError || error instanceof KnowledgeScopeApiError ||
     error instanceof KnowledgeScopeProductError || error instanceof HttpProviderAdapterError) {
     return error.code;
@@ -200,7 +210,7 @@ export const runKnowledgeScopeCli = async (
   dependencies: CliDependencies,
   streams: CliStreams,
 ): Promise<number> => {
-  const human = !argv.includes("--json") && (argv.length === 0 || ["connect", "ask", "refresh", "help"].includes(argv[0] ?? ""));
+  const human = !argv.includes("--json") && (argv.length === 0 || ["connect", "ask", "refresh", "prune", "recover", "help"].includes(argv[0] ?? ""));
   const projectIndex = argv.indexOf("--project");
   const directory = projectIndex < 0 ? ".schift-ks" : argv[projectIndex + 1] ?? ".schift-ks";
   try {

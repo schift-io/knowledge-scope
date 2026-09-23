@@ -8,6 +8,8 @@ import { canonicalJson, type JsonValue } from "./json.js";
 import { OnboardingError } from "./onboarding-config.js";
 import { prepareLocalSnapshot } from "./local-quickstart.js";
 import { canonicalSelectedPath, projectDirectory, readProject, writeProject, withProjectLock, type LocalProject } from "./local-project-files.js";
+import { writeBuildIntent, finishBuildIntent, type BuildIntent } from "./local-project-prune-builds.js";
+import { digest } from "./local-documents/snapshot.js";
 
 const note = "Documents stay on this computer as local snapshots. Refresh reads only the selected source. Earlier snapshots remain stored; no automatic upload, model call, or deletion.";
 const info = (directory: string, project: LocalProject) => ({ directory, source: project.source,
@@ -29,9 +31,17 @@ const verifyMount = async (project: LocalProject, dependencies: CliDependencies)
 };
 const build = async (request: Readonly<{ directory: string; source: string }>, dependencies: CliDependencies): Promise<LocalProject> => {
   const snapshot = randomUUID();
-  const built = z.object({ installationId: z.string() }).parse(await prepareLocalSnapshot({ directory: join(request.directory, snapshot), source: request.source, tenant: "local-tenant" }, dependencies));
+  let intent:BuildIntent={format:"schift.local-build.v1",source:request.source,snapshot,packId:`local-project-${snapshot}`,files:{}};
+  await writeBuildIntent(request.directory,intent);
+  const snapshotRoot=join(request.directory,snapshot);
+  const built = z.object({ installationId: z.string() }).parse(await prepareLocalSnapshot({ directory: snapshotRoot, source: request.source, tenant: "local-tenant",packId:`local-project-${snapshot}`,progress:{
+    beforePublish:async(indexRef)=>{intent={...intent,indexRef};await writeBuildIntent(request.directory,intent);},
+    beforeFiles:async(files)=>{intent={...intent,files:Object.fromEntries(Object.entries(files).map(([path,value])=>[path.slice(snapshotRoot.length+1),digest(canonicalJson(value))]))};await writeBuildIntent(request.directory,intent);},
+    mounted:async(mount)=>{intent={...intent,mount,files:{...intent.files,"installation.json":digest(canonicalJson(mount))}};await writeBuildIntent(request.directory,intent);},
+  } }, dependencies));
   const { mount } = z.object({ mount: KnowledgeScopeMountSchema }).parse(await dependencies.embedded.inspect(built.installationId));
   const project: LocalProject = { format: "schift.local-project.v1", source: request.source, snapshot, mount };
+  intent={...intent,files:{...intent.files,"project.json":digest(canonicalJson(project))}};await writeBuildIntent(request.directory,intent);
   await writeProject(join(request.directory, snapshot), project);
   return project;
 };
@@ -57,6 +67,7 @@ export const connectLocalProject = async (request: Readonly<{ directory: string;
     }
     const project = await build({ directory, source }, dependencies);
     await writeProject(directory, project);
+    await finishBuildIntent(directory,project.snapshot);
     return { ...info(directory, project), status: "connected", reused: false };
   });
 };
@@ -69,6 +80,7 @@ export const refreshLocalProject = async (request: Readonly<{ directory: string 
     const project = await build({ directory, source: current.source }, dependencies);
     await verifyMount(current, dependencies);
     await writeProject(directory, project);
+    await finishBuildIntent(directory,project.snapshot);
     return { ...info(directory, project), status: "refreshed", reused: false };
   });
 };

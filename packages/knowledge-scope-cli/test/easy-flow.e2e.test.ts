@@ -38,7 +38,7 @@ it("connects selected notes and answers follow-ups in fresh processes without co
   const first = await project.run(["ask", "환불", "--json"]);
   const followUp = await project.run(["ask", "배송", "--json"]);
   // Then: separate processes resolve the same project and return real citations.
-  expect(connected.exitCode).toBe(0);
+  expect(connected.exitCode, connected.stderr || connected.stdout).toBe(0);
   expect(connected.stdout).not.toContain('"installationId"');
   for (const result of [first, followUp]) {
     expect(result.exitCode).toBe(0);

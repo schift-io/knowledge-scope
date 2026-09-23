@@ -210,6 +210,7 @@ export const createCliDependencies = (options: KnowledgeScopeCliOptions = {}): C
   const embedded = applicationPort(application);
   return {
     environment,
+    localState: store,
     authoring,
     localDocuments,
     embedded,
