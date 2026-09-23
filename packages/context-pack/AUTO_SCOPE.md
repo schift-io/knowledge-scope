@@ -248,8 +248,11 @@ Plan (tests first, no publication implied):
       backup/restore, downgrade boundaries and unsupported environments.
 - [x] Run independent review, fault/kill/concurrency tests, real installed CLI
       paths and supported runtime checks; distinguish configured CI from run CI.
-- [ ] Obtain separate public-push/npm authority and then verify remote release
-      acceptance. Real customer activation remains the external gate below.
+- [x] Push the public source to [GitHub `main`](https://github.com/schift-io/knowledge-scope/commit/f21bd93b488e040339819496a2d8ce69449f0cfd)
+      and verify [remote CI](https://github.com/schift-io/knowledge-scope/actions/runs/35819455064):
+      Python plus macOS/Ubuntu Node 22/24 all succeeded.
+- [ ] Publish npm `@schift-io/knowledge-scope@0.3.0` only with separate approval.
+      Real customer activation remains the external gate below.
 
 Candidate `0.3.0` package SHA-256:
 `7f3938872e60b08dffe6d9c6b8220163a74d563c765b85411750dbf20f67a148`.
@@ -259,7 +262,8 @@ dependency vulnerabilities, legacy `0.2.0` upgrade, maintenance, and actual
 Node SIGKILL recovery all passed. The same tarball passed installed checks on
 macOS arm64 Node 22.22.1 and 24.21.0, Linux arm64 and x64 Node 22.23.2
 and 24.21.0. The Linux x64 checks ran in emulated local containers.
-These six local checks do not substitute for a remote GitHub Actions run.
+These six local checks are complemented by the successful remote GitHub Actions
+run above; independent customer validation is still open.
 
 An interrupted candidate writer releases its local guard. Legacy file locks
 require explicit reviewed recovery and confirmation that old writers stopped.
@@ -267,7 +271,8 @@ Retention cleanup requires an exact preview plan and explicit apply; it protects
 the active installation, shared references and original source files. Unknown
 old orphan directories and unverified temporary files remain fail-closed for
 operator review. Backups and prior assistant conversation copies are not erased.
-The candidate has not been published or tested with independent customers.
+The candidate source is on GitHub. npm `0.3.0` has not been published, and the
+product has not been tested with independent customers.
 
 ## External validation — open
 
