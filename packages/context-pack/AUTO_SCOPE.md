@@ -257,8 +257,9 @@ The isolated verifier built and installed this exact tarball: 333 CLI/SDK tests,
 63 Context Pack contract tests, strict typecheck, zero reported production
 dependency vulnerabilities, legacy `0.2.0` upgrade, maintenance, and actual
 Node SIGKILL recovery all passed. The same tarball passed installed checks on
-macOS arm64 Node 22.22.1 and 24.21.0, Linux arm64 Node 22.23.2 and 24.21.0.
-These four local checks do not substitute for a remote GitHub Actions run.
+macOS arm64 Node 22.22.1 and 24.21.0, Linux arm64 and x64 Node 22.23.2
+and 24.21.0. The Linux x64 checks ran in emulated local containers.
+These six local checks do not substitute for a remote GitHub Actions run.
 
 An interrupted candidate writer releases its local guard. Legacy file locks
 require explicit reviewed recovery and confirmation that old writers stopped.
