@@ -12,7 +12,7 @@ const hasCode = (error: unknown, code: string): boolean => error instanceof Erro
 
 // Nested project -> state acquisition must never contend with itself.
 export const localGuardPort = (lockName: string, unsignedHash: number): number =>
-  (lockName === "state.lock" ? 16384 : 32768) + (unsignedHash % 16384);
+  lockName === "state.lock" ? 16384 + (unsignedHash % 16384) : 1024 + (unsignedHash % 15360);
 
 const guardPort = async (path: string): Promise<number> => {
   if (process.platform !== "darwin" && process.platform !== "linux") throw new LocalLockError("invalid");

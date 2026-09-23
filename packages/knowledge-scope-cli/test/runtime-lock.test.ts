@@ -39,7 +39,7 @@ it("separates nested state and project guards even when their hash values collid
     const state = localGuardPort("state.lock", hash);
     const project = localGuardPort(".project.lock", hash);
     // Then: disjoint bands prevent permanent self-conflict during nested writes.
-    return state >= 16384 && state < 32768 && project >= 32768 && project < 49152;
+    return state >= 16384 && state < 32768 && project >= 1024 && project < 16384;
   });
   expect(separated).toBe(true);
 });
